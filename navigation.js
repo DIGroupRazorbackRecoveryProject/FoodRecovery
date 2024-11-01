@@ -7,16 +7,16 @@ function loadContent(section) {
     switch (section) {
         
         case 'AR':
-            page = '/templates/AR.html';
+            page = '/FoodRecovery/templates/AR.html';
             break;
         case 'VR':
-            page = '/templates/VR.html';
+            page = '/FoodRecovery/templates/VR.html';
             break;
         case 'apiCall':
-            page = '/templates/apiCall.html';
+            page = '/FoodRecovery/templates/apiCall.html';
             break;
         case 'apiCallWebSocket':
-            page = '/templates/apiCallWebSocket.html';
+            page = '/FoodRecovery/templates/apiCallWebSocket.html';
             break;
         case 'about':
             page = '/FoodRecovery/templates/about.html';
@@ -25,25 +25,25 @@ function loadContent(section) {
             page = '/templates/featuredContent.html';
             break;
         case 'hero_centered':
-            page = '/templates/hero_centered.html';
+            page = '/FoodRecovery/templates/hero_centered.html';
             break;
         case 'iconList':
-            page = '/templates/iconList.html';
+            page = '/FoodRecovery/templates/iconList.html';
             break;
         case 'modals':
-            page = '/templates/modals.html';
+            page = '/FoodRecovery/templates/modals.html';
             break;
         case 'notifications':
-            page = '/templates/notifications.html';
+            page = '/FoodRecovery/templates/notifications.html';
             break;
         case 'llama':
-            page = '/templates/llama.html';
+            page = '/FoodRecovery/templates/llama.html';
             break;
         case 'dropdownPages':
-            page = '/templates/dropdownPages.html';
+            page = '/FoodRecovery/templates/dropdownPages.html';
             break;
         case 'styles':
-            page = '/templates/styles.html';
+            page = '/FoodRecovery/templates/styles.html';
             break;
         case 'home':
                 page = '/FoodRecovery/templates/home.html';
@@ -73,8 +73,8 @@ function loadContent(section) {
         case 'pickupcompleted':
                 page = '/FoodRecovery/templates/pickupcompleted.html';
                 break;
-        case 'contact':
-                page = '/FoodRecovery/templates/contact.html';
+        case 'help':
+                page = '/FoodRecovery/templates/help.html';
                 break;
         case 'profilesettings':
                 page = '/FoodRecovery/templates/profilesettings.html';
@@ -136,9 +136,9 @@ $(document).ready(function() {
         event.preventDefault();
         loadContent('myaccount');
     });
-    $('#contact-link').click(function(event) {
+    $('#help-link').click(function(event) {
         event.preventDefault();
-        loadContent('contact');
+        loadContent('help');
     });
 
     $('#logout-link').click(function(event) {
