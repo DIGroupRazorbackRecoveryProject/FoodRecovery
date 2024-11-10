@@ -73,8 +73,8 @@ function loadContent(section) {
         case 'pickupcompleted':
                 page = '/FoodRecovery/templates/pickupcompleted.html';
                 break;
-        case 'help':
-                page = '/FoodRecovery/templates/help.html';
+        case 'support':
+                page = '/FoodRecovery/templates/support.html';
                 break;
         case 'profilesettings':
                 page = '/FoodRecovery/templates/profilesettings.html';
@@ -136,9 +136,9 @@ $(document).ready(function() {
         event.preventDefault();
         loadContent('myaccount');
     });
-    $('#help-link').click(function(event) {
+    $('#support-link').click(function(event) {
         event.preventDefault();
-        loadContent('help');
+        loadContent('support');
     });
 
     $('#logout-link').click(function(event) {
