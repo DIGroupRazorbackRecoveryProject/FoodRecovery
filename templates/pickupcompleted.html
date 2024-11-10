@@ -10,107 +10,56 @@
 </div>
 
 <button class="btn btn-primary return-dashboard-button" id="return-to-dashboard-link">Return to Dashboard</button>
-<script>
-  // Function to update the request details number
-  function updateRequestDetails() {
-    let selectedRequests = localStorage.getItem('selectedRequests');
-    if (selectedRequests) {
-      selectedRequests = JSON.parse(selectedRequests);
-      let requestInfo = selectedRequests.join(', ');
-      document.getElementById("request-details-number").textContent = requestInfo; 
-    } else {
-      document.getElementById("request-details-number").textContent = "N/A"; // Default if no data
-    }
-  }
+<script type="module">
+  import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
-  // Call the function initially when the page loads
-  updateRequestDetails();
+  const app = getApp();
+  const db = getFirestore(app);
 
-  // Add an event listener for storage changes
-  window.addEventListener('storage', function(event) {
-    if (event.key === 'selectedRequests') {
-      updateRequestDetails();
+  $(document).ready(function() {
+    // Function to update the request details number
+    function updateRequestDetails() {
+      let selectedRequests = localStorage.getItem('selectedRequests');
+      if (selectedRequests) {
+        selectedRequests = JSON.parse(selectedRequests);
+        let requestInfo = selectedRequests.join(', ');
+        document.getElementById("request-details-number").textContent = requestInfo; 
+      } else {
+        document.getElementById("request-details-number").textContent = "N/A"; // Default if no data
+      }
     }
+
+    // Call the function initially when the page loads
+    updateRequestDetails();
+
+    // Add an event listener for storage changes
+    window.addEventListener('storage', function(event) {
+      if (event.key === 'selectedRequests') {
+        updateRequestDetails();
+      }
+    });
+
+    // Add event listener for the Return to Dashboard link
+    $('#return-to-dashboard-link').click(async function(event) {
+      event.preventDefault(); // Prevent default link behavior
+
+      let selectedRequests = localStorage.getItem('selectedRequests');
+      if (selectedRequests) {
+        selectedRequests = JSON.parse(selectedRequests);
+
+        for (const requestNumber of selectedRequests) {
+          try {
+            // Delete the request from Firestore
+            await deleteDoc(doc(db, "acceptedRequests", requestNumber));
+            console.log(`Request ${requestNumber} deleted from Firestore`);
+          } catch (error) {
+            console.error(`Error deleting request ${requestNumber}:`, error);
+          }
+        }
+
+        loadContent('volunteerdashboard'); // Load volunteerdashboard.html
+      }
+    });
   });
-
-// Add event listener for the Return to Dashboard link
-$('#return-to-dashboard-link').click(function(event) {
-    event.preventDefault(); // Prevent default link behavior
-
-    // 1. Remove from acceptedrequest.html
-    removeRequestsFromAccepted(); 
-
-    // 2. Remove from volunteerdashboard.html
-    removeRequestsFromDashboard();
-
-    loadContent('volunteerdashboard'); // Load volunteerdashboard.html
-  });
-
-  // Function to remove requests from acceptedrequest.html
-  function removeRequestsFromAccepted() {
-    let selectedRequests = localStorage.getItem('selectedRequests');
-    if (selectedRequests) {
-      selectedRequests = JSON.parse(selectedRequests);
-
-      // Open the acceptedRequestsDB database
-      const dbRequest = window.indexedDB.open('acceptedRequestsDB', 1);
-      dbRequest.onsuccess = function(event) {
-        const db = event.target.result;
-        const transaction = db.transaction('requests', 'readwrite');
-        const store = transaction.objectStore('requests');
-
-        selectedRequests.forEach(requestNumber => {
-          // Delete the request from the database
-          const deleteRequest = store.delete(requestNumber);
-          deleteRequest.onsuccess = function() {
-            console.log(`Request ${requestNumber} deleted from acceptedRequestsDB`);
-          };
-          deleteRequest.onerror = function(event) {
-            console.error(`Error deleting request ${requestNumber}:`, event);
-          };
-        });
-
-        // After all deletions, update the UI in acceptedrequest.html
-        loadContent('acceptedrequest');
-      };
-
-      dbRequest.onerror = function(event) {
-        console.error('Error opening acceptedRequestsDB:', event);
-      };
-    }
-  }
-
-  // Function to remove requests from volunteerdashboard.html
-  function removeRequestsFromDashboard() {
-    let selectedRequests = localStorage.getItem('selectedRequests');
-    if (selectedRequests) {
-      selectedRequests = JSON.parse(selectedRequests);
-
-      // Open the hostRequestDB database
-      const dbRequest = window.indexedDB.open('hostRequestDB', 1);
-      dbRequest.onsuccess = function(event) {
-        const db = event.target.result;
-        const transaction = db.transaction('requests', 'readwrite');
-        const store = transaction.objectStore('requests');
-
-        selectedRequests.forEach(requestNumber => {
-          // Delete the request from the database
-          const deleteRequest = store.delete(requestNumber);
-          deleteRequest.onsuccess = function() {
-            console.log(`Request ${requestNumber} deleted from hostRequestDB`);
-          };
-          deleteRequest.onerror = function(event) {
-            console.error(`Error deleting request ${requestNumber}:`, event);
-          };
-        });
-
-        // After all deletions, update the UI in volunteerdashboard.html
-        loadContent('volunteerdashboard');
-      };
-
-      dbRequest.onerror = function(event) {
-        console.error('Error opening hostRequestDB:', event);
-      };
-    }
-  }
 </script>
