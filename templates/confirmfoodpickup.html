@@ -1,5 +1,5 @@
 <!-- templates/confirmFoodPickup.html -->
-<h1 class ="title">Confirm Food Pickup <span id="selected-request-info"></span></h1>
+<h1 class="title">Confirm Food Pickup <span id="selected-request-info"></span></h1>
 <p><a href="path/to/your/instructions.pdf" class="download-link">**View Instructions**</a> on how to take a clear photo of the food you have picked up.</p> 
 
 <button class="btn btn-primary" id="take-photo-button">Take Photo</button>
@@ -11,7 +11,6 @@
 <p class="notification">Email will be sent to the requester that food has been picked up and the request will be closed in dashboard</p>
 
 <script>
-  // Function to update the selected request info display
   function updateSelectedRequestInfo() {
     let selectedRequests = localStorage.getItem('selectedRequests');
     if (selectedRequests) {
@@ -23,24 +22,19 @@
     }
   }
 
-  // Call the function initially when the page loads
   updateSelectedRequestInfo();
 
-  // Add an event listener for storage changes
   window.addEventListener('storage', function(event) {
     if (event.key === 'selectedRequests') {
       updateSelectedRequestInfo();
     }
   });
 
-  // Event listener for "Take Photo" button
   document.getElementById("take-photo-button").addEventListener("click", function() {
     document.getElementById("preview-container").style.display = "block";
   });
 
-  // Event listener for "Complete Pickup" button (You'll need to add logic here)
   document.getElementById("complete-pickup-button").addEventListener("click", function() {
-        loadContent('pickupcompleted'); // Load pickupcompleted.html
-    });
+    loadContent('pickupcompleted');
+  });
 </script>
-

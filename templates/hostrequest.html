@@ -88,12 +88,17 @@
     <button type="submit" class="btn btn-primary" id="submit-request-button">Submit Request</button>
 </form>
 
-<!-- Ensure jQuery is included -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function() {
+<script type="module">
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+
+  const app = getApp(); // Get the initialized app
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  $(document).ready(function() {
     // Handle form submission
-    $('#host-request').on('submit', function(event) {
+    $('#host-request').on('submit', async function(event) {
         event.preventDefault(); // Prevent default form submission
 
         // Gather form data
@@ -131,52 +136,25 @@ $(document).ready(function() {
             $('#phoneError').text(''); // Clear error message if valid
         }
         
-
-        // IndexedDB setup
-        const request = window.indexedDB.open('hostRequestDB', 1);
-
-        request.onerror = function(event) {
-            console.error('Error opening database:', event);
-            alert('Error accessing database.');
-        };
-
-        request.onupgradeneeded = function(event) {
-            const db = event.target.result;
-            // Create the "requests" object store if it doesn't exist
-            if (!db.objectStoreNames.contains('requests')) {
-                db.createObjectStore('requests', { keyPath: 'id', autoIncrement: true });
-            }
-        };
-
-        request.onsuccess = function(event) {
-            const db = event.target.result;
-            const transaction = db.transaction('requests', 'readwrite');
-            const store = transaction.objectStore('requests');
-
-            const newRequest = {
-                eventName: eventName,
-                location: location,
-                foodType: foodType,
-                quantity: quantity,
-                pickupType: pickupType,
-                email: email,
-                phone: phone,
-                notes: notes,
-                createdAt: createdAt
-            };
-
-            const addRequest = store.add(newRequest);
-
-            addRequest.onsuccess = function() {
-                console.log('Request saved successfully.');
-                loadContent('requestsubmitted'); // Navigate to the request submitted page
-            };
-
-            addRequest.onerror = function(event) {
-                console.error('Error saving request:', event);
-                alert('Error saving request.');
-            };
-        };
+        try {
+            const docRef = await addDoc(collection(db, "hostRequests"), {
+                eventName,
+                location,
+                foodType,
+                quantity,
+                pickupType,
+                email,
+                phone,
+                notes,
+                createdAt,
+                userId: auth.currentUser ? auth.currentUser.uid : null
+            });
+            console.log("Document written with ID: ", docRef.id);
+            loadContent('requestsubmitted'); // Navigate to the request submitted page
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert('Error saving request.');
+        }
     });
 
     // Logic to set active class on selected pickup type button
@@ -184,6 +162,5 @@ $(document).ready(function() {
         $('.pickup-type').removeClass('active'); // Remove active class from all
         $(this).addClass('active');              // Add active class to clicked
     });
-});
+  });
 </script>
-

@@ -9,100 +9,86 @@
 
 <button class="btn btn-primary" id="start-pickup-button">Start Pickup</button> 
 
-<script>
-$(document).ready(function() {
-        const loggedIn = localStorage.getItem('loggedIn');
-        if (loggedIn === 'true') {
-            // User is logged in, proceed to load accepted requests
-            loadAcceptedRequests(); 
-        } else {
-            // User is not logged in, show a modal
-            $(`
-                <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
-                                
-                            </div>
-                            <div class="modal-body">
-                                You need to be logged in as a volunteer to view this page. Please log in or sign up.
-                            </div>
-                            <div class="modal-footer">
-                
-                                <button type="button" class="btn btn-primary" onclick="loadContent('volunteerlogin')">Login</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).appendTo('body'); // Append the modal to the body
-            $('#loginRequiredModal').modal('show'); // Show the modal
-        }
+<script type="module">
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
-        // To track selected requests
-        let selectedRequests = new Set();
+  const app = getApp();
+  const db = getFirestore(app);
+  $(document).ready(async function() {
+    const loggedIn = localStorage.getItem('loggedIn');
+    if (loggedIn === 'true') {
+      // User is logged in, proceed to load accepted requests
+      await loadAcceptedRequests();
+    } else {
+      // User is not logged in, show a modal
+      $(`<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
+              </div>
+              <div class="modal-body">
+                You need to be logged in as a volunteer to view this page. Please log in or sign up.
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="loadContent('volunteerlogin')">Login</button>
+              </div>
+            </div>
+          </div>
+        </div>`).appendTo('body');
+      $('#loginRequiredModal').modal('show');
+    }
 
-        // Function to load accepted requests from the database
-        function loadAcceptedRequests() {
-            const dbRequest = window.indexedDB.open('acceptedRequestsDB', 1);
+    // To track selected requests
+    let selectedRequests = new Set();
 
-            dbRequest.onsuccess = function (event) {
-                const db = event.target.result;
-                const transaction = db.transaction('requests', 'readonly');
-                const store = transaction.objectStore('requests');
+    async function loadAcceptedRequests() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "acceptedRequests"));
+        const container = $('#accepted-requests-container');
+        container.empty(); // Clear previous results
 
-                store.getAll().onsuccess = function (event) {
-                    const requests = event.target.result;
-                    const container = $('#accepted-requests-container');
-                    container.empty(); // Clear previous results
-
-                    requests.forEach(request => {
-                        const requestElement = $(`
-                            <div class="summary-item">
-                                <div style="display: flex; align-items: center;">
-                                    <input type="checkbox" class="request-checkbox" data-request-number="${request.requestNumber}" style="margin-right: 10px;">
-                                    <p>Request Details Number: <a href="#" class="request-details-link">${request.requestNumber}</a></p>
-                                </div>
-                            </div>
-                        `);
-                        container.append(requestElement);
-                    });
-
-                    // Add event listener for each checkbox
-                    $('.request-checkbox').change(function () {
-                        const requestNumber = $(this).data('request-number');
-                        if (this.checked) {
-                            selectedRequests.add(requestNumber);
-                        } else {
-                            selectedRequests.delete(requestNumber);
-                        }
-                    });
-
-                    // Add event listener for each link
-                    $('.request-details-link').click(function (event) {
-                        event.preventDefault();
-                        const requestNumber = $(this).text();
-                        localStorage.setItem('selectedRequestNumber', requestNumber);
-                        loadContent('viewrequestdetails');
-                    });
-                };
-            };
-
-            dbRequest.onerror = function (event) {
-                console.error('Error opening database:', event);
-            };
-        }
-        
-        // Event listener for "Start Pickup" button
-        $('#start-pickup-button').click(function () {
-            if (selectedRequests.size > 0) {
-                localStorage.setItem('selectedRequests', JSON.stringify(Array.from(selectedRequests)));
-                loadContent('confirmfoodpickup');
-            } else {
-                alert('Please select at least one request to start the pickup.');
-            }
+        querySnapshot.forEach(doc => {
+          const request = doc.data();
+          const requestElement = $(`<div class="summary-item">
+                                      <div style="display: flex; align-items: center;">
+                                        <input type="checkbox" class="request-checkbox" data-request-number="${request.requestNumber}" style="margin-right: 10px;">
+                                        <p>Request Details Number: <a href="#" class="request-details-link">${request.requestNumber}</a></p>
+                                      </div>
+                                    </div>`);
+          container.append(requestElement);
         });
+
+        // Add event listener for each checkbox
+        $('.request-checkbox').change(function() {
+          const requestNumber = $(this).data('request-number');
+          if (this.checked) {
+            selectedRequests.add(requestNumber);
+          } else {
+            selectedRequests.delete(requestNumber);
+          }
+        });
+
+        // Add event listener for each link
+        $('.request-details-link').click(function(event) {
+          event.preventDefault();
+          const requestNumber = $(this).text();
+          localStorage.setItem('selectedRequestNumber', requestNumber);
+          loadContent('viewrequestdetails');
+        });
+      } catch (error) {
+        console.error('Error retrieving accepted requests:', error);
+      }
+    }
+    // Event listener for "Start Pickup" button
+    $('#start-pickup-button').click(function() {
+      if (selectedRequests.size > 0) {
+        localStorage.setItem('selectedRequests', JSON.stringify(Array.from(selectedRequests)));
+        loadContent('confirmfoodpickup');
+      } else {
+        alert('Please select at least one request to start the pickup.');
+      }
     });
-  
-  
+  });
 </script>
