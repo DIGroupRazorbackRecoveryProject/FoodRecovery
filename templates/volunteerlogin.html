@@ -23,50 +23,27 @@
   <button type="button" class="btn btn-primary" id="forgot-password">Forgot Password?</button>
 </form>
 
-<script>
- 
+<script type="module">
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+  const auth = getAuth();
   $('#login-button').click(function(event) {
     event.preventDefault();
-    console.log('login');
-
-    // Get user input values
     const email = $('#email-input').val();
     const password = $('#password-input').val();
 
-    // Check if user exists in IndexedDB
-    const request = window.indexedDB.open('volunteerDB', 1);
-
-    request.onerror = function(event) {
-      console.error('Error opening database:', event);
-      alert('Error accessing database.');
-    };
-
-    request.onsuccess = function(event) {
-      const db = event.target.result;
-      const transaction = db.transaction('users', 'readonly');
-      const store = transaction.objectStore('users');
-      const getUserRequest = store.get(email);
-
-      getUserRequest.onsuccess = function(event) {
-        const user = getUserRequest.result;
-        
-        if (user && user.password === password) {
-          console.log('Login successful!');
-          localStorage.setItem('loggedIn', true);
-          sessionStorage.setItem('loggedInUser', user.firstName);
-          loadContent('volunteerdashboard');
-        } else {
-          alert('Invalid email or password.');
-        }
-      };
-
-      getUserRequest.onerror = function(event) {
-        console.error('Error retrieving user:', event);
-        alert('Error checking user details.');
-      };
-    };
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        console.log('Login successful!');
+        localStorage.setItem('loggedIn', true);
+        sessionStorage.setItem('loggedInUser', userCredential.user.email);
+        loadContent('volunteerdashboard');
+      })
+      .catch((error) => {
+        console.error('Error during login:', error);
+        alert('Invalid email or password.');
+      });
   });
-
   $('#signup-button').click(function(event) {
     event.preventDefault();
     loadContent('volunteersignup');
@@ -76,5 +53,4 @@
     event.preventDefault();
     loadContent('profilesettings');
   });
-
 </script>

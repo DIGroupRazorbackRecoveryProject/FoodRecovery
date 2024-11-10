@@ -41,12 +41,14 @@
   <button type="submit" class="btn btn-primary" id="signup-button">Sign Up</button>
 </form>
 
-<script>
+<script type="module">
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  const auth = getAuth();
+  const db = getFirestore();
   $('#signup-button').click(function(event) {
     event.preventDefault();
-    console.log('signup');
-
-    // Get user input values
     const firstName = $('#firstname-input').val();
     const lastName = $('#lastname-input').val();
     const email = $('#email-input').val();
@@ -54,54 +56,38 @@
     const confirmPassword = $('#confirmpassword-input').val();
     const phone = $('#phone-input').val();
 
-    // Basic validation
     if (password !== confirmPassword) {
       alert('Passwords do not match.');
       return;
     }
 
-    // Store user data in IndexedDB
-    const request = window.indexedDB.open('volunteerDB', 1);
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        const userData = {
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          phone: phone
+        };
 
-    request.onerror = function(event) {
-      console.error('Error opening database:', event);
-      alert('Error accessing database.');
-    };
-
-    request.onupgradeneeded = function(event) {
-      const db = event.target.result;
-
-      // Create the "users" object store if it doesn't exist
-      if (!db.objectStoreNames.contains('users')) {
-        db.createObjectStore('users', { keyPath: 'email' }); // Assuming email is unique
-      }
-    };
-
-    request.onsuccess = function(event) {
-      const db = event.target.result;
-      const transaction = db.transaction('users', 'readwrite');
-      const store = transaction.objectStore('users');
-
-      const newUser = { 
-        firstName: firstName, 
-        lastName: lastName, 
-        email: email,  
-        password: password,
-        phone: phone
-      };
-
-      const addRequest = store.add(newUser);
-
-      addRequest.onsuccess = function() {
-        console.log('User data saved successfully.');
-        localStorage.setItem('loggedIn', true); 
-        loadContent('volunteerdashboard'); 
-      };
-
-      addRequest.onerror = function(event) {
-        console.error('Error saving user data:', event);
-        alert('Error saving user data.');
-      };
-    };
+        console.log('User ID:', user.uid);
+        console.log('User Data:', userData);
+        // Save user data to Firestore in the UserProfile collection
+        setDoc(doc(db, 'UserProfile', user.uid), userData)
+          .then(() => {
+            console.log('User data saved successfully.');
+            localStorage.setItem('loggedIn', true);
+            loadContent('volunteerdashboard');
+          })
+          .catch((error) => {
+            console.error('Error saving user data:', error);
+            alert('Error saving user data.');
+          });
+      })
+      .catch((error) => {
+        console.error('Error during signup:', error);
+        alert('Error signing up.');
+      });
   });
 </script>
