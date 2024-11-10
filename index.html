@@ -39,7 +39,10 @@
 <body>
   <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
-    <a class="navbar-brand" href="#" id="app-name-link">Food Recovery App</a>
+    <a class="navbar-brand" href="#" id="app-name-link">
+      <img src="/FoodRecovery/icons/foodtruck.png" alt="Food Truck Icon" width="70" height="70" class="d-inline-block align-top mr-2">  <!-- Add image here -->
+      Food Recovery App
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
       aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -60,7 +63,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="myaccount.html" id="myaccount-link">Account</a>
-          
+
         </li>
         <li class="nav-item">
           <a class="nav-link" href="help.html" id="help-link">Contact</a>
@@ -140,18 +143,36 @@
 
 <script>
     $(document).ready(function() {
-      $("#floating-button").click(function() {
-        $("#floatingModal").modal('show'); 
-      });
-    });
-    $(document).ready(function () {
-      // ... your existing script for floating button and other things ...
+      const themeToggle = $('#theme-toggle');
+      const body = $('body'); // Target the body element
 
-      // Add event listener for the Logout link
-      $('#logout-link').click(function (event) {
-        event.preventDefault(); // Prevent default link behavior
-        localStorage.setItem('loggedIn', false); // Clear login flag
-        loadContent('home'); // Redirect to home.html
-      });
-    });
+  // Check for existing theme preference in local storage
+    const currentTheme = localStorage.getItem('theme') || 'light';
+   setTheme(currentTheme);
+
+  themeToggle.click(function() {
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme); // Store the preference
+  });
+
+
+  function setTheme(theme) {
+    if (theme === 'dark') {
+      body.addClass('dark-theme'); // Add the dark-theme class
+      themeToggle.text('Switch to Light Theme');
+
+        // Update Bootstrap link and disable the light theme (if needed)
+      $('#bootstrap-light').prop('disabled', true);
+      $('#bootstrap-dark').prop('disabled', false);
+    } else {
+      body.removeClass('dark-theme'); // Remove the dark-theme class
+      themeToggle.text('Switch to Dark Theme');
+        // Update Bootstrap link and disable the light theme (if needed)
+      $('#bootstrap-light').prop('disabled', false);
+      $('#bootstrap-dark').prop('disabled', true);
+
+    }
+  }
+});
 </script>

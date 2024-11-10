@@ -6,6 +6,36 @@ body {
   color: #38342b;
 }
 
+/* ... other styles */
+h1, h2 {   /* Main headings */
+  font-family: 'Arial', sans-serif;  /* Or your preferred font */
+  color: #343a40;
+}
+
+p, ul {    /* Paragraphs and lists */
+  font-size: 16px;
+  line-height: 1.6; /* Improve readability */
+  color: #495057;   /* Slightly darker gray */
+}
+
+.btn {        /* Standard button styles */
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+/* Contact Information at the Bottom */
+#about-section + p { /* Style the <p> immediately after #about-section */
+  text-align: center;
+  margin-top: 30px; /* Add some space above */
+}
+
+/* ... (rest of your existing CSS) ... */
+
+
 /* Headings and Titles */
 h1, h2, h3, h4, h5, h6 {
   font-weight: bold;
@@ -37,6 +67,7 @@ button {
 button:hover {
   background-color: #0056b3; /* Darker Blue */
 }
+
 
 /* Icons */
 img {
@@ -282,3 +313,4 @@ input:checked + .toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* About css
