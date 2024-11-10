@@ -180,3 +180,16 @@ $(document).ready(function() {
         }
     }
 });
+
+// navigation.js
+// ... other functions ...
+
+function setupAboutPage() {
+    // This is called after the "About" content is loaded.
+
+    $('#host-request-link, #volunteer-signup-link').click(function(event) {
+        event.preventDefault();
+        const page = $(this).attr('id') === 'host-request-link' ? 'hostrequest' : 'volunteersignup';
+        loadContent(page);
+    });
+}
