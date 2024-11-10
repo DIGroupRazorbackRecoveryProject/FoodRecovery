@@ -1,6 +1,6 @@
 <!-- templates/requestSubmitted.html -->
 <h1 class="title">Request Submitted Successfully!</h1>
-<h3 class="subtitle">Request Summary</h3> 
+<h3 class="subtitle">Request Summary</h3>
 
 <div class="summary-item">
     <img src="/FoodRecovery/icons/event.png" alt="Event Icon">
@@ -35,54 +35,36 @@
 </div>
 
 <button class="btn btn-primary" id="return-home-button">Return to Home</button>
-<button class="btn btn-primary" id="cancel-request-button">Cancel Request</button> 
+<button class="btn btn-primary" id="cancel-request-button">Cancel Request</button>
 
-<p class="notification">Email is sent to view the request and track it...</p> 
+<p class="notification">Email is sent to view the request and track it...</p>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    function loadRequestData() {
-        const request = window.indexedDB.open('hostRequestDB', 1);
+<script type="module">
+    import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
-        request.onerror = function(event) {
-            console.error('Error opening database:', event);
-            alert('Error accessing database.');
-        };
+    const app = getApp(); // Get the initialized app
+    const db = getFirestore(app);
+    async function loadRequestData() {
+        try {
+            const q = query(collection(db, "hostRequests"), orderBy("createdAt", "desc"), limit(1));
+            const querySnapshot = await getDocs(q);
 
-        request.onsuccess = function(event) {
-            console.log('Database opened successfully.');
-            const db = event.target.result;
-            const transaction = db.transaction('requests', 'readonly');
-            const store = transaction.objectStore('requests');
+            if (!querySnapshot.empty) {
+                const latestRequest = querySnapshot.docs[0].data();
+                console.log('Latest request:', latestRequest);
 
-            const getAllRequests = store.getAll();
-            
-            getAllRequests.onsuccess = function(event) {
-                const allRequests = event.target.result;
-                console.log('Retrieved requests:', allRequests);
-
-                if (allRequests.length > 0) {
-                    const latestRequest = allRequests[allRequests.length - 1];
-                    console.log('Latest request:', latestRequest);
-
-                    if (latestRequest) {
-                        $('#event-name').text(latestRequest.eventName || 'N/A');
-                        $('#location').text(latestRequest.location || 'N/A');
-                        $('#food-details').text((latestRequest.foodType || 'N/A') + ', ' + (latestRequest.quantity || 'N/A'));
-                        $('#pickup-time').text(latestRequest.pickupType || 'N/A');
-                    } else {
-                        console.log('No request data found.');
-                    }
-                } else {
-                    console.log('No requests found in the database.');
-                }
-            };
-
-            getAllRequests.onerror = function(event) {
-                console.error('Error retrieving request data:', event);
-                alert('Error retrieving request details.');
-            };
-        };
+                $('#event-name').text(latestRequest.eventName || 'N/A');
+                $('#location').text(latestRequest.location || 'N/A');
+                $('#food-details').text((latestRequest.foodType || 'N/A') + ', ' + (latestRequest.quantity || 'N/A'));
+                $('#pickup-time').text(latestRequest.pickupType || 'N/A');
+            } else {
+                console.log('No request data found.');
+            }
+        } catch (error) {
+            console.error('Error retrieving request data:', error);
+            alert('Error retrieving request details.');
+        }
     }
 
     $(document).ready(function() {
@@ -98,4 +80,3 @@
         });
     });
 </script>
-

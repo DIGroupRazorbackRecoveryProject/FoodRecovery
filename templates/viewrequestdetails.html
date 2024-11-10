@@ -54,24 +54,22 @@
 </div>
 <button class="btn btn-primary" id="accepted-requests-button">Return to Accepted Requests</button> 
 <script>
-    
-     if (localStorage.getItem('latestRequest')) { // Check if latestRequest exists
-        // Populate the page with request details
-        const latestRequest = JSON.parse(localStorage.getItem('latestRequest')); 
-        $('#event-name').text(latestRequest.eventName);
-        $('#request-type').text(latestRequest.requestType);
-        $('#location').text(latestRequest.location);
-        $('#food').text(latestRequest.food);
-        $('#quantity').text(latestRequest.quantity + ' lbs');
-        $('#notes').text(latestRequest.notes);
-
-        // ... other code ...
+  $(document).ready(function() {
+    if (localStorage.getItem('latestRequest')) {
+      const latestRequest = JSON.parse(localStorage.getItem('latestRequest'));
+      $('#event-name').text(latestRequest.eventName || 'N/A');
+      $('#request-type').text(latestRequest.requestType || 'N/A');
+      $('#location').text(latestRequest.location || 'N/A');
+      $('#food').text(latestRequest.food || 'N/A');
+      $('#quantity').text(latestRequest.quantity ? latestRequest.quantity + ' lbs' : 'N/A');
+      $('#notes').text(latestRequest.notes || 'N/A');
     } else {
-        console.error('No valid request details found. Please select a request.');
-        alert('No valid request details found. Please select a request.');
+      console.error('No valid request details found. Please select a request.');
+      alert('No valid request details found. Please select a request.');
     }
     $('#accepted-requests-button').click(function(event) {
-    event.preventDefault();
-    loadContent('acceptedrequest');
+      event.preventDefault();
+      loadContent('acceptedrequest');
+    });
   });
 </script>
