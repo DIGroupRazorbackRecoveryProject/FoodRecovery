@@ -12,7 +12,7 @@
   <!-- Add icons for PWA (Optional, ensure these paths are correct) -->
   <link rel="icon" href="./icons/icon-192x192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
-  <title>Food Recovery App</title>
+  <title>HogShare</title>
 
   <!-- Firebase Configuration -->
   <script type="module">
@@ -60,7 +60,6 @@
   <!-- <link id="bootstrap-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdb-ui-kit@8.0.0/css/mdb.min.css"
     disabled> -->
   <!-- Dark Theme Bootstrap CSS (Vapor from Bootswatch) - Initially Disabled -->
-  <link id="bootstrap-dark" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" disabled>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -76,8 +75,8 @@
   <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
     <a class="navbar-brand" href="#" id="app-name-link">
-      <img src="/FoodRecovery/icons/foodtruck.png" alt="Food Truck Icon" width="70" height="70" class="d-inline-block align-top mr-2">  <!-- Add image here -->
-      Food Recovery App
+      <img src="/FoodRecovery/icons/foodtruck.png" alt="Food Truck Icon" width="50" height="50" class="d-inline-block align-top mr-2">  <!-- Add image here -->
+      HogShare
     </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
       aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,7 +97,7 @@
           <a class="nav-link" href="acceptedrequests.html" id="accepted-request-link">AcceptedRequests</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="myaccount.html" id="myaccount-link">Account</a>
+          <a class="nav-link" href="myaccount.html" id="myaccount-link">Settings</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="support.html" id="support-link">Support</a>
@@ -106,10 +105,10 @@
         <li class="nav-item">
           <a class="nav-link" href="#" id="logout-link">Logout</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="profilesettings.html" id="myprofile-link">Profile</a>
+        </li>
       </ul>
-      <!-- Theme Switcher Button -->
-      <button id="theme-toggle" class="btn btn-outline-secondary ml-2">Switch to Dark Theme</button>
-    </div>
   </nav>
 
   <!-- Main Content Area -->
@@ -121,14 +120,9 @@
   <!-- Footer -->
   <footer class="footer mt-auto py-3 bg-light text-center fixed-bottom">
     <div class="container">
-      <span class="text-muted">© 2024 Food Recovery App</span>
+      <span class="text-muted">© 2024 HogShare</span>
     </div>
   </footer>
-
-  <!-- Floating Action Button -->
-  <button id="floating-button" class="btn btn-primary rounded-circle shadow-lg" style="position: fixed; bottom: 60px; right: 20px; z-index: 100;">
-    <i class="fas fa-plus"></i>
-  </button>
 
   <!-- Modal -->
   <div class="modal fade" id="floatingModal" tabindex="-1" aria-labelledby="floatingModalLabel" aria-hidden="true">
@@ -167,6 +161,7 @@
   <!-- External JavaScript file -->
   <script src="script.js"></script>
   <script src="navigation.js"></script>
+  
 </body>
 
 </html>

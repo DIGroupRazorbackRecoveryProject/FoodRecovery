@@ -1,14 +1,17 @@
 <!-- templates/confirmFoodPickup.html -->
-<h1 class ="title">Confirm Food Pickup <span id="selected-request-info"></span></h1>
-<p><a href="path/to/your/instructions.pdf" class="download-link">**View Instructions**</a> on how to take a clear photo of the food you have picked up.</p> 
+<h1 class="title">Confirm Food Pickup <span id="selected-request-info"></span></h1>
+<p><a href="path/to/your/instructions.pdf" class="download-link">**View Instructions**</a> on how to take a clear photo of the food you have picked up.</p>
 
 <button class="btn btn-primary" id="take-photo-button">Take Photo</button>
 <div id="preview-container" style="display: none;">
-  <img src="path/to/your/preview-placeholder.png" alt="Preview Placeholder" style="width: 100%; height: auto;">
+  <video id="camera-preview" autoplay style="width: 100%; height: auto;"></video>
+  <canvas id="snapshot" style="display: none;"></canvas>
+  <img id="photo-preview" alt="Preview" style="width: 100%; height: auto;">
   <p style="text-align: center;">Preview</p>
 </div>
-<button class="btn btn-primary" id="complete-pickup-button">Complete Pickup</button>
-<p class="notification">Email will be sent to the requester that food has been picked up and the request will be closed in dashboard</p>
+<button class="btn btn-primary" id="click-photo-button" style="display: none;">Click</button> <!-- New "Click" button -->
+<button class="btn btn-primary" id="complete-pickup-button" style="display: none;">Complete Pickup</button>
+<p class="notification">Email will be sent to the requester that food has been picked up and the request will be closed in dashboard.</p>
 
 <script>
   // Function to update the selected request info display
@@ -33,14 +36,55 @@
     }
   });
 
+  // Function to start the camera and show preview
+  async function startCamera() {
+    const video = document.getElementById('camera-preview');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      document.getElementById('preview-container').style.display = 'block';
+      document.getElementById('click-photo-button').style.display = 'inline-block'; // Show the "Click" button
+    } catch (error) {
+      alert("Camera access is required to take a photo.");
+      console.error("Camera access error:", error);
+    }
+  }
+
+  // Capture a photo from the camera feed
+  function takePhoto() {
+    const video = document.getElementById('camera-preview');
+    const canvas = document.getElementById('snapshot');
+    const context = canvas.getContext('2d');
+
+    // Set canvas size to match video feed
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Convert the snapshot to an image and display it
+    const photoDataUrl = canvas.toDataURL('image/png');
+    document.getElementById('photo-preview').src = photoDataUrl;
+    document.getElementById('photo-preview').style.display = 'block';
+    document.getElementById('complete-pickup-button').style.display = 'inline-block'; // Show "Complete Pickup" button
+
+    // Stop the camera stream after taking the photo
+    video.srcObject.getTracks().forEach(track => track.stop());
+    video.style.display = 'none';
+    document.getElementById('click-photo-button').style.display = 'none'; // Hide the "Click" button
+  }
+
   // Event listener for "Take Photo" button
   document.getElementById("take-photo-button").addEventListener("click", function() {
-    document.getElementById("preview-container").style.display = "block";
+    startCamera();
   });
 
-  // Event listener for "Complete Pickup" button (You'll need to add logic here)
-  document.getElementById("complete-pickup-button").addEventListener("click", function() {
-        loadContent('pickupcompleted'); // Load pickupcompleted.html
-    });
-</script>
+  // Event listener for "Click" button to capture the photo
+  document.getElementById("click-photo-button").addEventListener("click", function() {
+    takePhoto();
+  });
 
+  // Event listener for "Complete Pickup" button
+  document.getElementById("complete-pickup-button").addEventListener("click", function() {
+    loadContent('pickupcompleted'); // Load pickupcompleted.html
+  });
+</script>
