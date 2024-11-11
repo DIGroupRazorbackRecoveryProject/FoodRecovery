@@ -10,15 +10,8 @@
 </div>
 
 <button class="btn btn-primary return-dashboard-button" id="return-to-dashboard-link">Return to Dashboard</button>
-<script type="module">
-  import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-  import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-
-  const app = getApp();
-  const db = getFirestore(app);
-
+<script>
   $(document).ready(function() {
-    // Function to update the request details number
     function updateRequestDetails() {
       let selectedRequests = localStorage.getItem('selectedRequests');
       if (selectedRequests) {
@@ -26,40 +19,15 @@
         let requestInfo = selectedRequests.join(', ');
         document.getElementById("request-details-number").textContent = requestInfo; 
       } else {
-        document.getElementById("request-details-number").textContent = "N/A"; // Default if no data
+        document.getElementById("request-details-number").textContent = "N/A";
       }
     }
 
-    // Call the function initially when the page loads
     updateRequestDetails();
 
-    // Add an event listener for storage changes
-    window.addEventListener('storage', function(event) {
-      if (event.key === 'selectedRequests') {
-        updateRequestDetails();
-      }
-    });
-
-    // Add event listener for the Return to Dashboard link
-    $('#return-to-dashboard-link').click(async function(event) {
-      event.preventDefault(); // Prevent default link behavior
-
-      let selectedRequests = localStorage.getItem('selectedRequests');
-      if (selectedRequests) {
-        selectedRequests = JSON.parse(selectedRequests);
-
-        for (const requestNumber of selectedRequests) {
-          try {
-            // Delete the request from Firestore
-            await deleteDoc(doc(db, "acceptedRequests", requestNumber));
-            console.log(`Request ${requestNumber} deleted from Firestore`);
-          } catch (error) {
-            console.error(`Error deleting request ${requestNumber}:`, error);
-          }
-        }
-
-        loadContent('volunteerdashboard'); // Load volunteerdashboard.html
-      }
+    $('#return-to-dashboard-link').click(function(event) {
+      event.preventDefault();
+      loadContent('volunteerdashboard');
     });
   });
 </script>

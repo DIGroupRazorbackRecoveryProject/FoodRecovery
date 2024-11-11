@@ -10,7 +10,13 @@
 <button class="btn btn-primary" id="complete-pickup-button">Complete Pickup</button>
 <p class="notification">Email will be sent to the requester that food has been picked up and the request will be closed in dashboard</p>
 
-<script>
+<script type="module">
+  import { getFirestore, doc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+
+  const app = getApp();
+  const db = getFirestore(app);
+
   function updateSelectedRequestInfo() {
     let selectedRequests = localStorage.getItem('selectedRequests');
     if (selectedRequests) {
@@ -18,7 +24,7 @@
       let requestInfo = selectedRequests.join(', ');
       document.getElementById("selected-request-info").textContent = " - " + requestInfo;
     } else {
-      document.getElementById("selected-request-info").textContent = ""; // Clear if no data
+      document.getElementById("selected-request-info").textContent = "";
     }
   }
 
@@ -34,7 +40,61 @@
     document.getElementById("preview-container").style.display = "block";
   });
 
-  document.getElementById("complete-pickup-button").addEventListener("click", function() {
-    loadContent('pickupcompleted');
+  document.getElementById("complete-pickup-button").addEventListener("click", async function() {
+    let selectedRequests = localStorage.getItem('selectedRequests');
+    if (selectedRequests) {
+      selectedRequests = JSON.parse(selectedRequests);
+
+      try {
+        for (const requestNumber of selectedRequests) {
+          console.log('Processing request number:', requestNumber);
+          
+          const acceptedRequestsQuery = query(
+            collection(db, "acceptedRequests"), 
+            where("requestNumber", "==", parseInt(requestNumber))
+          );
+          
+          const acceptedQuerySnapshot = await getDocs(acceptedRequestsQuery);
+          
+          if (!acceptedQuerySnapshot.empty) {
+            const acceptedDoc = acceptedQuerySnapshot.docs[0];
+            const acceptedData = acceptedDoc.data();
+            
+            console.log('Found accepted request data:', acceptedData);
+            
+            const hostRequestid = acceptedData.hostRequestid;
+            const completedAt = new Date().toISOString();
+            
+            if (hostRequestid) {
+              // Update the host request status
+              const hostRequestRef = doc(db, "hostRequests", hostRequestid);
+              await updateDoc(hostRequestRef, {
+                status: "completed"
+              });
+
+              // Update the accepted request with completion time
+              const acceptedRequestRef = doc(db, "acceptedRequests", acceptedDoc.id);
+              await updateDoc(acceptedRequestRef, {
+                completedAt: completedAt
+              });
+
+              console.log(`Host request ${hostRequestid} marked as completed in Firestore`);
+              console.log(`Completion time recorded: ${completedAt}`);
+            } else {
+              console.error(`No host request ID found for request number ${requestNumber}`);
+              console.log('Accepted request data:', acceptedData);
+            }
+          } else {
+            console.error(`No accepted request found for request number ${requestNumber}`);
+          }
+        }
+
+        // After successfully updating all requests, proceed to completion page
+        loadContent('pickupcompleted');
+      } catch (error) {
+        console.error('Error completing pickup:', error);
+        alert('Error completing pickup. Please try again.');
+      }
+    }
   });
 </script>
