@@ -89,78 +89,81 @@
 </form>
 
 <script type="module">
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-
-  const app = getApp(); // Get the initialized app
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-  $(document).ready(function() {
-    // Handle form submission
-    $('#host-request').on('submit', async function(event) {
-        event.preventDefault(); // Prevent default form submission
-
-        // Gather form data
-        const eventName = $('#eventName').val();
-        const location = $('#location').val();
-        const foodType = $('#foodType').val();
-        const quantity = $('#quantity').val();
-        const email = $('#email').val();
-        const phone = $('#phone').val();
-        const notes = $('#notes').val();
-
-        // Retrieve the pickup type from the active button
-        const pickupType = $('.pickup-type.active').data('type'); 
-
-        if (!pickupType) {
-            alert('Please select a pickup type.');
-            return; // Ensure a pickup type is selected
-        }
-
-        const createdAt = new Date().toISOString(); // Store the creation date
-
-        // Email validation
-        if (!email.includes('@')) {
-            $('#emailError').text('Please enter a valid email address.');
-            return;
-        } else {
-            $('#emailError').text('');
-        }
-        
-        // Phone number validation
-        if (phone.length !== 10 || !/^[0-9]+$/.test(phone)) {
-            $('#phoneError').text('Please enter a valid 10-digit phone number.');
-            return; // Stop form submission
-        } else {
-            $('#phoneError').text(''); // Clear error message if valid
-        }
-        
-        try {
-            const docRef = await addDoc(collection(db, "hostRequests"), {
-                eventName,
-                location,
-                foodType,
-                quantity,
-                pickupType,
-                email,
-                phone,
-                notes,
-                createdAt,
-                userId: auth.currentUser ? auth.currentUser.uid : null
-            });
-            console.log("Document written with ID: ", docRef.id);
-            loadContent('requestsubmitted'); // Navigate to the request submitted page
-        } catch (e) {
-            console.error("Error adding document: ", e);
-            alert('Error saving request.');
-        }
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  
+    const app = getApp(); // Get the initialized app
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+  
+    $(document).ready(function() {
+      // Handle form submission
+      $('#host-request').on('submit', async function(event) {
+          event.preventDefault(); // Prevent default form submission
+  
+          // Gather form data
+          const eventName = $('#eventName').val();
+          const location = $('#location').val();
+          const foodType = $('#foodType').val();
+          const quantity = $('#quantity').val();
+          const email = $('#email').val();
+          const phone = $('#phone').val();
+          const notes = $('#notes').val();
+  
+          // Retrieve the pickup type from the active button
+          const pickupType = $('.pickup-type.active').data('type'); 
+  
+          if (!pickupType) {
+              alert('Please select a pickup type.');
+              return; // Ensure a pickup type is selected
+          }
+  
+          const createdAt = new Date().toISOString(); // Store the creation date
+  
+          // Email validation
+          if (!email.includes('@')) {
+              $('#emailError').text('Please enter a valid email address.');
+              return;
+          } else {
+              $('#emailError').text('');
+          }
+          
+          // Phone number validation
+          if (phone.length !== 10 || !/^[0-9]+$/.test(phone)) {
+              $('#phoneError').text('Please enter a valid 10-digit phone number.');
+              return; // Stop form submission
+          } else {
+              $('#phoneError').text(''); // Clear error message if valid
+          }
+          
+          try {
+              const docRef = await addDoc(collection(db, "hostRequests"), {
+                  eventName,
+                  location,
+                  foodType,
+                  quantity,
+                  pickupType,
+                  email,
+                  phone,
+                  notes,
+                  createdAt,
+                  status: "pending", // Set initial status to pending
+                  userId: auth.currentUser ? auth.currentUser.uid : null
+              });
+              console.log("Document written with ID: ", docRef.id);
+              loadContent('requestsubmitted'); // Navigate to the request submitted page
+          } catch (e) {
+              console.error("Error adding document: ", e);
+              alert('Error saving request.');
+          }
+      });
+  
+      // Logic to set active class on selected pickup type button
+      $('.pickup-type').on('click', function() {
+          $('.pickup-type').removeClass('active'); // Remove active class from all
+          $(this).addClass('active');              // Add active class to clicked
+      });
     });
+  </script>
 
-    // Logic to set active class on selected pickup type button
-    $('.pickup-type').on('click', function() {
-        $('.pickup-type').removeClass('active'); // Remove active class from all
-        $(this).addClass('active');              // Add active class to clicked
-    });
-  });
-</script>

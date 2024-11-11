@@ -8,57 +8,82 @@
 </div>
 
 <script type="module">
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-  import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-  const app = getApp();
-  const db = getFirestore(app);
+    const app = getApp();
+    const db = getFirestore(app);
+    const auth = getAuth();
 
-  async function loadRequests() {
-    try {
-      const querySnapshot = await getDocs(collection(db, "hostRequests"));
-      const requestsContainer = $('#requests-container');
-      requestsContainer.empty(); // Clear existing content
+    async function loadRequests() {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          console.error('No user is currently logged in');
+          return;
+        }
 
-      querySnapshot.forEach((doc) => {
-        const request = doc.data();
-        const requestCard = $('<div class="request-card"></div>');
-        requestCard.append(`<img src="path/to/your/map.png" alt="Map" style="margin-bottom: 10px;">`);
-        requestCard.append(`<p style="font-weight: bold; margin-bottom: 5px;">Time Left: Calculate Time</p>`); // Implement time calculation
-        requestCard.append(`<label>Event Details :</label>`);
-        requestCard.append(`<a href="#" class="request-link">${request.eventName}</a>`);
-        requestCard.append(`<p>${request.pickupType} request</p>`);
+        // Query Firestore for requests with status "pending"
+        const q = query(collection(db, "hostRequests"), where("status", "==", "pending"));
+        const querySnapshot = await getDocs(q);
+        const requestsContainer = $('#requests-container');
+        requestsContainer.empty(); // Clear existing content
 
-        requestCard.find('.request-link').click(function(event) {
-          event.preventDefault();
-          const latestRequest = {
-            eventName: request.eventName,
-            requestType: request.pickupType,
-            location: request.location,
-            food: request.foodType,
-            quantity: request.quantity,
-            notes: request.notes,
-          };
+        querySnapshot.forEach((doc) => {
+          const request = doc.data();
+          const requestCard = $('<div class="request-card"></div>');
+          requestCard.append(`<img src="path/to/your/map.png" alt="Map" style="margin-bottom: 10px;">`);
+          requestCard.append(`<p style="font-weight: bold; margin-bottom: 5px;">Time Left: Calculate Time</p>`); // Implement time calculation
+          requestCard.append(`<label>Event Details :</label>`);
+          requestCard.append(`<a href="#" class="request-link">${request.eventName}</a>`);
+          requestCard.append(`<p>${request.pickupType} request</p>`);
 
-          localStorage.setItem('latestRequest', JSON.stringify(latestRequest));
-          loadContent('pickuprequestdetails');
+          requestCard.find('.request-link').click(function(event) {
+            event.preventDefault();
+            const latestRequest = {
+              hostRequestid: doc.id,  // Store the document ID
+              eventName: request.eventName,
+              requestType: request.pickupType,
+              location: request.location,
+              food: request.foodType,
+              quantity: request.quantity,
+              notes: request.notes,
+              volunteerId: currentUser.uid  // Now currentUser is properly defined
+            };
+
+            localStorage.setItem('latestRequest', JSON.stringify(latestRequest));
+            loadContent('pickuprequestdetails');
+          });
+
+          requestsContainer.append(requestCard);
         });
-
-        requestsContainer.append(requestCard);
-      });
-    } catch (error) {
-      console.error('Error retrieving requests:', error);
-      alert('Error retrieving request details.');
+      } catch (error) {
+        console.error('Error retrieving requests:', error);
+        alert('Error retrieving request details.');
+      }
     }
-  }
 
-  $(document).ready(function() {
-    let loggedIn = localStorage.getItem('loggedIn') || false;
+    $(document).ready(function() {
+      let loggedIn = localStorage.getItem('loggedIn') || false;
 
-    if (loggedIn === 'true') {
-      loadRequests();
-    } else {
-      // Show login modal
+      if (loggedIn === 'true') {
+        // Check if user is authenticated with Firebase
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            loadRequests();
+          } else {
+            console.error('No user is logged in with Firebase');
+            localStorage.setItem('loggedIn', false);
+            showLoginModal();
+          }
+        });
+      } else {
+        showLoginModal();
+      }
+    });
+
+    function showLoginModal() {
       $(`<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -77,5 +102,4 @@
 
       $('#loginRequiredModal').modal('show');
     }
-  });
 </script>
