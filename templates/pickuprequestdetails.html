@@ -55,78 +55,83 @@
 
 <button class="btn btn-primary" id="accept-request-button">Accept Request</button>
 
-<script>
-    
-     if (localStorage.getItem('latestRequest')) { // Check if latestRequest exists
-        // Populate the page with request details
-        const latestRequest = JSON.parse(localStorage.getItem('latestRequest')); 
-        $('#event-name').text(latestRequest.eventName);
-        $('#request-type').text(latestRequest.requestType);
-        $('#location').text(latestRequest.location);
-        $('#food').text(latestRequest.food);
-        $('#quantity').text(latestRequest.quantity + ' lbs');
-        $('#notes').text(latestRequest.notes);
+<script type="module">
+    import { getFirestore, doc, updateDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        // ... other code ...
-    } else {
+    const app = getApp();
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    $(document).ready(function() {
+      if (localStorage.getItem('latestRequest')) {
+        const latestRequest = JSON.parse(localStorage.getItem('latestRequest'));
+        $('#event-name').text(latestRequest.eventName || 'N/A');
+        $('#request-type').text(latestRequest.requestType || 'N/A');
+        $('#location').text(latestRequest.location || 'N/A');
+        $('#food').text(latestRequest.food || 'N/A');
+        $('#quantity').text(latestRequest.quantity ? latestRequest.quantity + ' lbs' : 'N/A');
+        $('#notes').text(latestRequest.notes || 'N/A');
+      } else {
         console.error('No valid request details found. Please select a request.');
         alert('No valid request details found. Please select a request.');
-    }
+      }
 
-function generateRequestNumber() {
-    return Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit number
-}
+      $('#accept-request-button').click(async function() {
+        if (localStorage.getItem('latestRequest')) {
+          const latestRequest = JSON.parse(localStorage.getItem('latestRequest'));
+          const requestNumber = generateRequestNumber();
 
-function saveAcceptedRequest(requestNumber, requestDetails) {
-    const dbRequest = window.indexedDB.open('acceptedRequestsDB', 1);
+          console.log('Attempting to accept request:', latestRequest);
+          console.log('Generated request number:', requestNumber);
 
-    dbRequest.onupgradeneeded = function(event) {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains('requests')) {
-            db.createObjectStore('requests', { keyPath: 'requestNumber' });
+          try {
+            // Update the request status in hostRequests collection
+            if (latestRequest.hostRequestid) {  // Changed from id to hostRequestid
+              const requestDocRef = doc(db, "hostRequests", latestRequest.hostRequestid);
+              await updateDoc(requestDocRef, {
+                status: "accepted"
+              });
+
+              // Get the current user
+              const currentUser = auth.currentUser;
+              if (!currentUser) {
+                throw new Error('No user is currently logged in');
+              }
+
+              // Add to acceptedRequests collection with volunteerId
+              await addDoc(collection(db, "acceptedRequests"), {
+                requestNumber,
+                hostRequestid: latestRequest.hostRequestid,  // Store the reference to hostRequests
+                volunteerId: currentUser.uid,
+                eventName: latestRequest.eventName,
+                requestType: latestRequest.requestType,
+                location: latestRequest.location,
+                food: latestRequest.food,
+                quantity: latestRequest.quantity,
+                notes: latestRequest.notes,
+                acceptedAt: new Date().toISOString(),
+                completedAt: null
+              });
+
+              console.log('Request accepted and saved successfully.');
+              alert(`Request accepted! Request Number: ${requestNumber}`);
+              loadContent('acceptedrequest');
+            } else {
+              console.error('No document ID found for the request.');
+            }
+          } catch (error) {
+            console.error('Error saving accepted request:', error);
+            alert('Error saving request.');
+          }
+        } else {
+          alert('No valid request details found. Please select a request.');
         }
-    };
+      });
+    });
 
-    dbRequest.onsuccess = function(event) {
-        const db = event.target.result;
-        const transaction = db.transaction('requests', 'readwrite');
-        const store = transaction.objectStore('requests');
-
-        const newAcceptedRequest = {
-            requestNumber: requestNumber,
-            eventName: requestDetails.eventName,
-            requestType: requestDetails.requestType,
-            location: requestDetails.location,
-            food: requestDetails.food,
-            quantity: requestDetails.quantity,
-            notes: requestDetails.notes
-        };
-
-        store.add(newAcceptedRequest);
-
-        transaction.oncomplete = function() {
-            console.log('Request accepted and saved successfully.');
-            alert(`Request accepted! Request Number: ${requestNumber}`);
-            loadContent('acceptedrequest');
-        };
-
-        transaction.onerror = function(event) {
-            console.error('Error saving accepted request:', event);
-        };
-    };
-
-    dbRequest.onerror = function(event) {
-        console.error('Error opening acceptedRequestsDB:', event);
-    };
-}
-// Event listener for the "Accept Request" button
-$('#accept-request-button').click(function() {
-    if (localStorage.getItem('latestRequest')) {
-        const latestRequest = JSON.parse(localStorage.getItem('latestRequest'));
-        const requestNumber = generateRequestNumber(); 
-        saveAcceptedRequest(requestNumber, latestRequest); 
-    } else {
-        alert('No valid request details found. Please select a request.');
+    function generateRequestNumber() {
+      return Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit number
     }
-});
 </script>
