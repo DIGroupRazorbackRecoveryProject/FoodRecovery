@@ -1,80 +1,118 @@
 <!-- templates/profileSettings.html -->
-<h1 class="title">Account Information</h1>
-<link  rel="stylesheet" href="./styles/accountstyle.css">
-<div style="display: flex; align-items: center; margin-bottom: 10px;">
-  <img src="/FoodRecovery/icons/profile.png" alt="Profile Icon" class="profile-icon" style="width: 100px; height: 100px;">
-  <div>
-    <p class="subtitle-volunteer">John Doe</p>
-    <p class="subtitle-text">john.doe@uark.edu</p>
+<h1 class="title">Settings</h1>
+<link rel="stylesheet" href="./styles/accountstyle.css">
+<div class="accordion" id="settingsAccordion">
+
+  <!-- Display Settings Section -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingDisplaySettings">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDisplaySettings" aria-expanded="true" aria-controls="collapseDisplaySettings">
+        Display Settings
+      </button>
+    </h2>
+    <div id="collapseDisplaySettings" class="accordion-collapse" aria-labelledby="headingDisplaySettings" data-bs-parent="#settingsAccordion">
+      <div class="accordion-body">
+        <label><input type="checkbox" id="notification-toggle"> Enable Dark Mode</label><br>
+        <label><input type="checkbox" id="compactLayoutToggle"> Compact Layout</label>
+      </div>
+    </div>
   </div>
-</div>
-<div class="profile-links">
-  <a href="#" id="my-account-link">
-    <img src="/FoodRecovery/icons/arrow.png" alt="Arrow Icon" width="20" height="20"> My Account
-  </a>
-  <p>
-    <img src="/FoodRecovery/icons/arrow.png" alt="Arrow Icon" width="20" height="20"> Display Settings
-  </p>
-  <p>
-    <img src="/FoodRecovery/icons/arrow.png" alt="Arrow Icon" width="20" height="20"> Notifications
-  </p>
-  <p>
-    <img src="/FoodRecovery/icons/arrow.png" alt="Arrow Icon" width="20" height="20"> Language
-  </p>
-  <p>
-    <img src="/FoodRecovery/icons/arrow.png" alt="Arrow Icon" width="20" height="20"> Privacy & Security
-  </p>
-  <p>
-    <img src="/FoodRecovery/icons/arrow.png" alt="Arrow Icon" width="20" height="20"> Help Center
-  </p>
-  <a href="#" id="logout-accountbutton">
-    <img src="/FoodRecovery/icons/arrow.png" alt="Arrow Icon" width="20" height="20"> Logout
-  </a>
+
+  <!-- Notifications Section -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingNotifications">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotifications" aria-expanded="false" aria-controls="collapseNotifications">
+        Notifications
+      </button>
+    </h2>
+    <div id="collapseNotifications" class="accordion-collapse collapse show" aria-labelledby="headingNotifications" data-bs-parent="#settingsAccordion">
+      <div class="accordion-body">
+        <label><input type="checkbox" id="newDonationAlert"> New Donation Alerts</label><br>
+        <label><input type="checkbox" id="volunteerOpportunityAlert"> Volunteer Opportunities</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Language Section -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingLanguage">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLanguage" aria-expanded="false" aria-controls="collapseLanguage">
+        Language
+      </button>
+    </h2>
+    <div id="collapseLanguage" class="accordion-collapse collapse show" aria-labelledby="headingLanguage" data-bs-parent="#settingsAccordion">
+      <div class="accordion-body">
+        <select id="languageSelect">
+          <option value="en">English</option>
+          <option value="es">Spanish</option>        
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Section -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingHelpCenter">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHelpCenter" aria-expanded="false" aria-controls="collapseHelpCenter">
+        Help
+      </button>
+    </h2>
+    <div id="collapseHelpCenter" class="accordion-collapse collapse show" aria-labelledby="headingHelpCenter" data-bs-parent="#settingsAccordion">
+      <div class="accordion-body">
+        <a href="#">FAQ</a><br>
+        <a href="#">Contact Us</a>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-      // Add event listener for the My Account link
-  
-      $(document).ready(function() {
-      const loggedIn = localStorage.getItem('loggedIn');
-      if (loggedIn === 'true') {
-          // User is logged in, proceed to show account details
-          // You might want to fetch account details here
-          // ... 
-      } else {
-          // User is not logged in, show a modal
-          $(`
-              <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
-                  <div class="modal-dialog">
-                      <div class="modal-content">
-                          <div class="modal-header">
-                              <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
-                              
-                          </div>
-                          <div class="modal-body">
-                              You need to be logged in as a volunteer to view this page. Please log in or sign up.
-                          </div>
-                          <div class="modal-footer">
-                  
-                              <button type="button" class="btn btn-primary" onclick="loadContent('volunteerlogin')">Login</button>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          `).appendTo('body'); // Append the modal to the body
-          $('#loginRequiredModal').modal('show'); // Show the modal
-      }
+  document.getElementById('darkModeToggle').addEventListener('change', function() {
+    document.body.classList.toggle('dark-mode', this.checked);
   });
 
-      $('#my-account-link').click(function(event) {
-          event.preventDefault(); // Prevent default link behavior
-          loadContent('profilesettings'); // Load myaccount.html
-      });
+  document.getElementById('compactLayoutToggle').addEventListener('change', function() {
+    document.body.classList.toggle('compact-layout', this.checked);
+  });
 
-      // Add event listener for the Logout link
-      $('#logout-accountbutton').click(function(event) {
-            event.preventDefault(); // Prevent default link behavior
-            //localStorage.setItem('loggedIn', false); // Simulate logout by clearing flag
-            loadContent('home'); // Load home.html
-        });
+  document.getElementById('languageSelect').addEventListener('change', function() {
+    alert("Language changed to " + this.options[this.selectedIndex].text);
+  });
+
+  $(document).ready(function() {
+    const loggedIn = localStorage.getItem('loggedIn');
+    if (loggedIn === 'true') {
+      // Fetch account details if logged in
+    } else {
+      // Show login modal if not logged in
+      $(`
+        <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
+              </div>
+              <div class="modal-body">
+                Please log in to access settings for your volunteer account.
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="loadContent('volunteerlogin')">Login</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).appendTo('body');
+      $('#loginRequiredModal').modal('show');
+    }
+  });
+
+  $('#my-account-link').click(function(event) {
+    event.preventDefault();
+    loadContent('profilesettings');
+  });
+
+  $('#logout-accountbutton').click(function(event) {
+    event.preventDefault();
+    loadContent('home');
+  });
 </script>

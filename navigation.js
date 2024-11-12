@@ -148,6 +148,11 @@ $(document).ready(function() {
     loadContent('login'); // Redirect to login page
     });
 
+     $('#myprofile-link').click(function(event) {
+    event.preventDefault();
+    loadContent('profilesettings'); // Make sure 'profilesettings' matches the filename
+    });
+
     // Event listener for app name link
     $('#app-name-link').click(function(event) {
         event.preventDefault(); 
