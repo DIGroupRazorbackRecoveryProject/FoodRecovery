@@ -1,13 +1,18 @@
 <!-- templates/acceptedRequest.html -->
 <h1 class="title">Accepted Requests</h1>
 <p class="subtitle-text">Click on "Start Pickup" when you reach the location.</p>
-<!-- Container for accepted requests -->
+
+<!-- Container for active accepted requests -->
 <div id="accepted-requests-container"></div>
 
-</div>
-</div>
-
+<!-- Start Pickup Button -->
 <button class="btn btn-primary" id="start-pickup-button">Start Pickup</button> 
+
+<!-- Completed Requests Section -->
+<div class="completed-requests-section">
+  <h2 class="title">Completed Pickups</h2>
+  <div id="completed-requests-container"></div>
+</div>
 
 <script type="module">
   import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -51,46 +56,54 @@
           return;
         }
 
-        // First, get all documents from hostRequests with status "accepted"
+        // Get all documents from hostRequests
         const hostRequestsSnapshot = await getDocs(collection(db, "hostRequests"));
-        const container = $('#accepted-requests-container');
-        container.empty();
+        const acceptedContainer = $('#accepted-requests-container');
+        const completedContainer = $('#completed-requests-container');
+        acceptedContainer.empty();
+        completedContainer.empty();
 
         console.log('Checking host requests...');
 
+        // Get all accepted requests for the current volunteer
+        const acceptedSnapshot = await getDocs(collection(db, "acceptedRequests"));
+        const acceptedRequestsMap = new Map();
+            
+        acceptedSnapshot.docs.forEach(acceptedDoc => {
+          const acceptedData = acceptedDoc.data();
+          if (acceptedData.volunteerId === currentUser.uid) {
+            acceptedRequestsMap.set(acceptedData.hostRequestid, acceptedData);
+          }
+        });
+
+        // Process host requests
         for (const hostDoc of hostRequestsSnapshot.docs) {
           const hostData = hostDoc.data();
-          console.log('Host request:', hostDoc.id, hostData);
+          const acceptedData = acceptedRequestsMap.get(hostDoc.id);
 
-          // Check if this host request has status "accepted"
-          if (hostData.status === "accepted") {
-            // Now look for corresponding document in acceptedRequests
-            const acceptedSnapshot = await getDocs(collection(db, "acceptedRequests"));
-            
-            for (const acceptedDoc of acceptedSnapshot.docs) {
-              const acceptedData = acceptedDoc.data();
-              console.log('Checking accepted request:', acceptedDoc.id, acceptedData);
+          if (acceptedData) {
+            const requestElement = $(`<div class="summary-item ${hostData.status === 'completed' ? 'completed-request-item' : ''}">
+                                    <div style="display: flex; align-items: center;">
+                                      ${hostData.status !== 'completed' ? 
+                                        `<input type="checkbox" class="request-checkbox" 
+                                                data-request-number="${acceptedData.requestNumber}" 
+                                                data-doc-id="${hostDoc.id}" 
+                                                style="margin-right: 10px;">` : ''}
+                                      <div>
+                                        <p>Request Details Number: <a href="#" class="request-details-link">${acceptedData.requestNumber}</a></p>
+                                        ${hostData.status === 'completed' ? '<p><small class="text-success">✓ Completed</small></p>' : ''}
+                                      </div>
+                                    </div>
+                                  </div>`);
 
-              // Match the host request ID and verify the volunteerId matches current user
-              if (acceptedData.hostRequestid === hostDoc.id && acceptedData.volunteerId === currentUser.uid) {
-                console.log('Found matching request for current user:', acceptedData);
-
-                const requestElement = $(`<div class="summary-item">
-                                          <div style="display: flex; align-items: center;">
-                                            <input type="checkbox" class="request-checkbox" 
-                                                   data-request-number="${acceptedData.requestNumber}" 
-                                                   data-doc-id="${hostDoc.id}" 
-                                                   style="margin-right: 10px;">
-                                            <p>Request Details Number: <a href="#" class="request-details-link">${acceptedData.requestNumber}</a></p>
-                                          </div>
-                                        </div>`);
-                container.append(requestElement);
-                break; // Found the matching document, no need to continue inner loop
-              }
+            // Add to appropriate container based on status
+            if (hostData.status === 'completed') {
+              completedContainer.append(requestElement);
+            } else if (hostData.status === 'accepted') {
+              acceptedContainer.append(requestElement);
             }
           }
         }
-
         // Add event listeners for checkboxes
         $('.request-checkbox').change(function() {
           const requestNumber = $(this).data('request-number');
@@ -109,7 +122,7 @@
           loadContent('viewrequestdetails');
         });
       } catch (error) {
-        console.error('Error retrieving accepted requests:', error);
+        console.error('Error retrieving requests:', error);
       }
     }
 

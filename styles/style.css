@@ -141,7 +141,17 @@ img {
 ,#accept-request-button:hover,#take-photo-button:hover,#complete-pickup-button:hover {
   background-color: #0056b3; /* Darker Blue */
 }
-      
+
+
+#start-pickup-button {
+  margin: 30px 0;
+  display: block;
+}
+
+.completed-request-item {
+  background-color: #f8f9fa;
+  border-left: 4px solid #28a745;
+}     
 /* To change the background color of the accordion header on hover */
 .accordion-button:hover {
   background-color: #3498db; /* Darker Blue */
