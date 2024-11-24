@@ -20,6 +20,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const hostRequestid = urlParams.get('id'); // Changed to match the property name
 
+        
         if (!hostRequestid) {
             showMessage('Error: No request ID provided', 'danger');
             return;
