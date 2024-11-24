@@ -1,0 +1,56 @@
+<!-- templates/cancelhostrequest.html -->
+<div class="container mt-5">
+    <div id="cancellation-message" class="alert" style="display: none;"></div>
+    <div class="text-center">
+        <div class="spinner-border" id="loading-spinner" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+
+    $(document).ready(function() {
+        const app = getApp();
+        const db = getFirestore(app);
+
+        // Get the request ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostRequestid = urlParams.get('id'); // Changed to match the property name
+
+        if (!hostRequestid) {
+            showMessage('Error: No request ID provided', 'danger');
+            return;
+        }
+
+        // Reference to the specific host request document
+        const hostRequestRef = doc(db, "hostRequests", hostRequestid);
+
+        // Update the status to "Canceled"
+        updateDoc(hostRequestRef, {
+            status: 'Canceled'
+        })
+        .then(() => {
+            showMessage('Host request has been successfully canceled.', 'success');
+            // After 3 seconds, redirect to home page
+            setTimeout(() => {
+                loadContent('home');
+            }, 3000);
+        })
+        .catch((error) => {
+            console.error("Error canceling request: ", error);
+            showMessage('Error canceling request. Please try again later.', 'danger');
+        });
+
+        function showMessage(message, type) {
+            $('#loading-spinner').hide();
+            const messageDiv = $('#cancellation-message');
+            messageDiv.removeClass('alert-success alert-danger')
+                     .addClass(`alert-${type}`)
+                     .text(message)
+                     .show();
+        }
+    });
+</script>
