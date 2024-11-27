@@ -76,6 +76,12 @@ function loadContent(section) {
         case 'support':
                 page = '/FoodRecovery/templates/support.html';
                 break;
+        case 'cancelhostrequest':
+                $('#main-content').load('templates/cancelhostrequest.html', function() {
+                // Add a callback to ensure the content is loaded before running the script
+                console.log('Cancel host request page loaded');
+                });
+                break;
         case 'profilesettings':
                 page = '/FoodRecovery/templates/profilesettings.html';
                 break;
@@ -198,3 +204,4 @@ function setupAboutPage() {
         loadContent(page);
     });
 }
+
