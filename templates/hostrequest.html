@@ -18,6 +18,12 @@
                     <label for="eventName" class="form-label">Event Name</label>
                     <input type="text" id="eventName" placeholder="Enter Event Name" class="form-input" required>
 
+                    <label for="eventDate" class="form-label">Event Date</label> 
+                    <input type="date" id="eventDate" class="form-input" required>  </br> </br><!-- Use type="date" -->
+
+                    <label for="eventTime" class="form-label">Event Time</label>
+                    <input type="time" id="eventTime" class="form-input" required><br><br>
+
                     <label for="location" class="form-label">Location</label>
                     <input type="text" id="location" placeholder="Enter Location" class="form-input" required>
 
@@ -105,6 +111,8 @@
   
           // Gather form data
           const eventName = $('#eventName').val();
+          const eventDate = $('#eventDate').val(); // Get the date value directly
+          const eventTime = $('#eventTime').val(); // Get the time value
           const location = $('#location').val();
           const foodType = $('#foodType').val();
           const quantity = $('#quantity').val();
@@ -167,4 +175,5 @@
       });
     });
   </script>
+
 

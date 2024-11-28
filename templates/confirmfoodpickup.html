@@ -10,8 +10,15 @@
   <p style="text-align: center;">Preview</p>
 </div>
 <button class="btn btn-primary" id="click-photo-button" style="display: none;">Click</button>
+
+<!-- Additional Information Box -->
+<div id="additional-info-container" style="display: none; margin-top: 20px;">
+  <label for="additional-info" class="form-label">Additional Information:</label>
+  <textarea id="additional-info" class="form-control" rows="3" placeholder="Add food details (eg: quantity..)"></textarea>
+</div>
+
 <button class="btn btn-primary" id="complete-pickup-button" style="display: none;">Complete Pickup</button>
-<p class="notification">Email will be sent to the requester that food has been picked up and the request will be closed in dashboard.</p>
+<p class="notification">Email will be sent to the requester that food has been picked up and the request will be closed in the dashboard.</p>
 
 <script type="module">
   import { getFirestore, doc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -71,6 +78,9 @@
     const photoDataUrl = canvas.toDataURL('image/png');
     document.getElementById('photo-preview').src = photoDataUrl;
     document.getElementById('photo-preview').style.display = 'block';
+
+    // Display additional information box and "Complete Pickup" button
+    document.getElementById('additional-info-container').style.display = 'block';
     document.getElementById('complete-pickup-button').style.display = 'inline-block';
 
     // Stop the camera stream after taking the photo
@@ -92,6 +102,8 @@
   // Event listener for "Complete Pickup" button
   document.getElementById("complete-pickup-button").addEventListener("click", async function() {
     let selectedRequests = localStorage.getItem('selectedRequests');
+    const additionalInfo = document.getElementById('additional-info').value.trim(); // Capture the additional information
+
     if (selectedRequests) {
       selectedRequests = JSON.parse(selectedRequests);
       try {
@@ -118,14 +130,16 @@
                 status: "completed"
               });
 
-              // Update the accepted request with completion time
+              // Update the accepted request with completion time and additional info
               const acceptedRequestRef = doc(db, "acceptedRequests", acceptedDoc.id);
               await updateDoc(acceptedRequestRef, {
-                completedAt: completedAt
+                completedAt: completedAt,
+                additionalInfo: additionalInfo // Save the additional info
               });
 
               console.log(`Host request ${hostRequestid} marked as completed in Firestore`);
               console.log(`Completion time recorded: ${completedAt}`);
+              console.log(`Additional info saved: ${additionalInfo}`);
             } else {
               console.error(`No host request ID found for request number ${requestNumber}`);
               console.log('Accepted request data:', acceptedData);
@@ -143,3 +157,4 @@
     }
   });
 </script>
+
