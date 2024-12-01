@@ -42,12 +42,12 @@
 </form>
 
 <script type="module">
-  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
   import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
   const auth = getAuth();
   const db = getFirestore();
-  $('#signup-button').click(function(event) {
+  $('#signup-button').click(async function(event) {
     event.preventDefault();
     const firstName = $('#firstname-input').val();
     const lastName = $('#lastname-input').val();
@@ -61,33 +61,30 @@
       return;
     }
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        const userData = {
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-          phone: phone
-        };
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Send verification email
+      await sendEmailVerification(user);
+      const userData = {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        emailVerified: false
+      };
 
-        console.log('User ID:', user.uid);
-        console.log('User Data:', userData);
-        // Save user data to Firestore in the UserProfile collection
-        setDoc(doc(db, 'UserProfile', user.uid), userData)
-          .then(() => {
-            console.log('User data saved successfully.');
-            localStorage.setItem('loggedIn', true);
-            loadContent('volunteerdashboard');
-          })
-          .catch((error) => {
-            console.error('Error saving user data:', error);
-            alert('Error saving user data.');
-          });
-      })
-      .catch((error) => {
-        console.error('Error during signup:', error);
-        alert('Error signing up.');
-      });
+      await setDoc(doc(db, 'UserProfile', user.uid), userData);
+      
+      // Show verification message
+      alert('Please check your email to verify your account before logging in.');
+      
+      // Redirect to login page instead of dashboard
+      loadContent('volunteerlogin');
+    } catch (error) {
+      console.error('Error during signup:', error);
+      alert('Error signing up: ' + error.message);
+    }
   });
 </script>

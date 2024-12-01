@@ -27,22 +27,28 @@
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
   const auth = getAuth();
-  $('#login-button').click(function(event) {
+  $('#login-button').click(async function(event) {
     event.preventDefault();
     const email = $('#email-input').val();
     const password = $('#password-input').val();
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        console.log('Login successful!');
-        localStorage.setItem('loggedIn', true);
-        sessionStorage.setItem('loggedInUser', userCredential.user.email);
-        loadContent('volunteerdashboard');
-      })
-      .catch((error) => {
-        console.error('Error during login:', error);
-        alert('Invalid email or password.');
-      });
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        alert('Please verify your email before logging in. Check your inbox for the verification link.');
+        await auth.signOut();
+        return;
+      }
+
+      // User is verified, proceed with login
+      localStorage.setItem('loggedIn', true);
+      loadContent('volunteerdashboard');
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert('Error logging in: ' + error.message);
+    }
   });
   $('#signup-button').click(function(event) {
     event.preventDefault();
