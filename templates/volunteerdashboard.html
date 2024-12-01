@@ -84,22 +84,45 @@
     });
 
     function showLoginModal() {
-      $(`<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
-              </div>
-              <div class="modal-body">
-                You need to be logged in as a volunteer to view this page. Please log in or sign up.
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="loadContent('volunteerlogin')">Login</button>
-              </div>
+        $(`<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
+                    </div>
+                    <div class="modal-body">
+                        You need to be logged in as a volunteer to view this page. Please log in or sign up.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="loginRedirectBtn">Login</button>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>`).appendTo('body');
 
-      $('#loginRequiredModal').modal('show');
+        const modal = $('#loginRequiredModal');
+      
+        // Initialize modal with options
+        modal.modal({
+            backdrop: 'static',
+            keyboard: false
+        });
+
+        // Handle modal hide event
+        modal.on('hide.bs.modal', function (e) {
+            if (!e.target._redirecting) {
+                e.preventDefault();
+                loadContent('home');
+            }
+        });
+
+        // Handle login button click
+        $('#loginRedirectBtn').click(function() {
+            modal[0]._redirecting = true;  // Set flag to allow modal to close
+            modal.modal('hide');  // Hide the modal
+            loadContent('volunteerlogin');  // Redirect to login page
+        });
+
+        modal.modal('show');
     }
 </script>
