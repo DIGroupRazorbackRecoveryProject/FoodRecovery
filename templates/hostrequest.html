@@ -149,6 +149,8 @@
           try {
               const docRef = await addDoc(collection(db, "hostRequests"), {
                   eventName,
+                  eventDate,      // Added
+                  eventTime,      // Added
                   location,
                   foodType,
                   quantity,
@@ -157,11 +159,11 @@
                   phone,
                   notes,
                   createdAt,
-                  status: "pending", // Set initial status to pending
+                  status: "pending",
                   userId: auth.currentUser ? auth.currentUser.uid : null
               });
               console.log("Document written with ID: ", docRef.id);
-              loadContent('requestsubmitted'); // Navigate to the request submitted page
+              loadContent('requestsubmitted');
           } catch (e) {
               console.error("Error adding document: ", e);
               alert('Error saving request.');

@@ -37,7 +37,7 @@
 </div>
 
 <script type="module">
-  import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
   import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
@@ -50,22 +50,7 @@
     if (loggedIn === 'true') {
       await loadAcceptedRequests();
     } else {
-      $(`<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
-              </div>
-              <div class="modal-body">
-                You need to be logged in as a volunteer to view this page. Please log in or sign up.
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="loadContent('volunteerlogin')">Login</button>
-              </div>
-            </div>
-          </div>
-        </div>`).appendTo('body');
-      $('#loginRequiredModal').modal('show');
+      showLoginModal();
     }
 
     let selectedRequests = new Set();
@@ -111,7 +96,7 @@
                                                 data-host-id="${hostDoc.id}"
                                                 style="margin-right: 10px;">` : ''}
                                       <div>
-                                        <p>Request Details Number: <a href="#" class="request-details-link">${acceptedData.requestNumber}</a></p>
+                                        <p>Request Details Number: <a href="#" class="request-details-link" data-accepted-id="${acceptedData.docId}">${acceptedData.requestNumber}</a></p>
                                         ${hostData.status === 'completed' ? '<p><small class="text-success">✓ Completed</small></p>' : ''}
                                       </div>
                                     </div>
@@ -136,8 +121,8 @@
 
         $('.request-details-link').click(function(event) {
           event.preventDefault();
-          const requestNumber = $(this).text();
-          localStorage.setItem('selectedRequestNumber', requestNumber);
+          const acceptedId = $(this).data('accepted-id');
+          localStorage.setItem('selectedRequestId', acceptedId);
           loadContent('viewrequestdetails');
         });
       } catch (error) {
@@ -193,4 +178,23 @@
       }
     });
   });
+
+  function showLoginModal() {
+    $(`<div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loginRequiredModalLabel">Login Required</h5>
+            </div>
+            <div class="modal-body">
+              You need to be logged in as a volunteer to view this page. Please log in or sign up.
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" onclick="loadContent('volunteerlogin')">Login</button>
+            </div>
+          </div>
+        </div>
+      </div>`).appendTo('body');
+    $('#loginRequiredModal').modal('show');
+  }
 </script>

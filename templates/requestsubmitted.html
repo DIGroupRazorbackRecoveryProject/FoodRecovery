@@ -10,6 +10,16 @@
     </div>
 </div>
 
+<!-- New separate box for Date and Time -->
+<div class="summary-item">
+    <img src="/FoodRecovery/icons/calendar.png" alt="Calendar Icon">
+    <div>
+        <h3>Event Date & Time</h3>
+        <p id="event-date">Loading...</p>
+        <p id="event-time">Loading...</p>
+    </div>
+</div>
+
 <div class="summary-item">
     <img src="/FoodRecovery/icons/location.png" alt="Location Icon">
     <div>
@@ -29,8 +39,8 @@
 <div class="summary-item">
     <img src="/FoodRecovery/icons/time.png" alt="Pickup Time Icon">
     <div>
-        <h3>Estimated Pickup Time</h3>
-        <p id="pickup-time">XXXX AM/PM</p>
+        <h3>Pickup Type</h3>
+        <p id="pickup-time">Loading...</p>
     </div>
 </div>
 
@@ -43,8 +53,9 @@
     import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
-    const app = getApp(); // Get the initialized app
+    const app = getApp();
     const db = getFirestore(app);
+    
     async function loadRequestData() {
         try {
             const q = query(collection(db, "hostRequests"), orderBy("createdAt", "desc"), limit(1));
@@ -54,10 +65,40 @@
                 const latestRequest = querySnapshot.docs[0].data();
                 console.log('Latest request:', latestRequest);
 
+                // Format date
+                const eventDate = latestRequest.eventDate ? new Date(latestRequest.eventDate).toLocaleDateString() : 'N/A';
+                
+                // Format time to 12-hour format with AM/PM
+                let eventTime = 'N/A';
+                if (latestRequest.eventTime) {
+                    const timeParts = latestRequest.eventTime.split(':');
+                    let hours = parseInt(timeParts[0]);
+                    const minutes = timeParts[1];
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12; // Convert 0 to 12
+                    eventTime = `${hours}:${minutes} ${ampm}`;
+                }
+
+                // Update each field individually
                 $('#event-name').text(latestRequest.eventName || 'N/A');
+                $('#event-date').text(`Date: ${eventDate}`);
+                $('#event-time').text(`Time: ${eventTime}`);
                 $('#location').text(latestRequest.location || 'N/A');
-                $('#food-details').text((latestRequest.foodType || 'N/A') + ', ' + (latestRequest.quantity || 'N/A'));
+                $('#food-details').text(`${latestRequest.foodType || 'N/A'} - Quantity: ${latestRequest.quantity || 'N/A'}`);
                 $('#pickup-time').text(latestRequest.pickupType || 'N/A');
+                
+                if (latestRequest.notes) {
+                    $('.summary-item').last().after(`
+                        <div class="summary-item">
+                            <img src="/FoodRecovery/icons/notes.png" alt="Notes Icon">
+                            <div>
+                                <h3>Additional Notes</h3>
+                                <p>${latestRequest.notes}</p>
+                            </div>
+                        </div>
+                    `);
+                }
             } else {
                 console.log('No request data found.');
             }

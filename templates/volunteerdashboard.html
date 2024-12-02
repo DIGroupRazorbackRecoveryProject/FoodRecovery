@@ -24,32 +24,39 @@
           return;
         }
 
-        // Query Firestore for requests with status "pending"
         const q = query(collection(db, "hostRequests"), where("status", "==", "pending"));
         const querySnapshot = await getDocs(q);
         const requestsContainer = $('#requests-container');
-        requestsContainer.empty(); // Clear existing content
+        requestsContainer.empty();
 
         querySnapshot.forEach((doc) => {
           const request = doc.data();
           const requestCard = $('<div class="request-card"></div>');
-          requestCard.append(`<img src="path/to/your/map.png" alt="Map" style="margin-bottom: 10px;">`);
-          requestCard.append(`<p style="font-weight: bold; margin-bottom: 5px;">Time Left: Calculate Time</p>`); // Implement time calculation
-          requestCard.append(`<label>Event Details :</label>`);
-          requestCard.append(`<a href="#" class="request-link">${request.eventName}</a>`);
-          requestCard.append(`<p>${request.pickupType} request</p>`);
+          
+          requestCard.append(`
+            <img src="path/to/your/map.png" alt="Map" style="margin-bottom: 10px;">
+            <p style="font-weight: bold; margin-bottom: 5px;">Time Left: Calculate Time</p>
+            <label>Event Details:</label>
+            <a href="#" class="request-link">${request.eventName}</a>
+            <p>${request.pickupType || 'Standard'} request</p>
+          `);
 
           requestCard.find('.request-link').click(function(event) {
             event.preventDefault();
             const latestRequest = {
-              hostRequestid: doc.id,  // Store the document ID
+              hostRequestid: doc.id,
               eventName: request.eventName,
-              requestType: request.pickupType,
+              eventDate: request.eventDate,
+              eventTime: request.eventTime,
               location: request.location,
-              food: request.foodType,
+              foodType: request.foodType,
               quantity: request.quantity,
+              pickupType: request.pickupType,
+              email: request.email,
+              phone: request.phone,
               notes: request.notes,
-              volunteerId: currentUser.uid  // Now currentUser is properly defined
+              status: request.status,
+              userId: request.userId
             };
 
             localStorage.setItem('latestRequest', JSON.stringify(latestRequest));
@@ -68,7 +75,6 @@
       let loggedIn = localStorage.getItem('loggedIn') || false;
 
       if (loggedIn === 'true') {
-        // Check if user is authenticated with Firebase
         auth.onAuthStateChanged((user) => {
           if (user) {
             loadRequests();
@@ -101,14 +107,11 @@
         </div>`).appendTo('body');
 
         const modal = $('#loginRequiredModal');
-      
-        // Initialize modal with options
         modal.modal({
             backdrop: 'static',
             keyboard: false
         });
 
-        // Handle modal hide event
         modal.on('hide.bs.modal', function (e) {
             if (!e.target._redirecting) {
                 e.preventDefault();
@@ -116,11 +119,10 @@
             }
         });
 
-        // Handle login button click
         $('#loginRedirectBtn').click(function() {
-            modal[0]._redirecting = true;  // Set flag to allow modal to close
-            modal.modal('hide');  // Hide the modal
-            loadContent('volunteerlogin');  // Redirect to login page
+            modal[0]._redirecting = true;
+            modal.modal('hide');
+            loadContent('volunteerlogin');
         });
 
         modal.modal('show');
