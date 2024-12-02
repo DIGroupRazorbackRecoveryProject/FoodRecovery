@@ -323,3 +323,29 @@ input:checked + .toggle-label:before {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  margin: 30px 0;
+}
+
+.button-group button {
+  margin: 0;  /* Override any existing margin */
+}
+
+/* Update the start-pickup-button style to remove block display */
+#start-pickup-button {
+  margin: 0;  /* Override the existing margin */
+  display: inline-block;
+}
+
+#cancel-requests-button {
+  background-color: #dc3545;  /* Bootstrap's danger red color */
+  border-color: #dc3545;
+}
+
+#cancel-requests-button:hover {
+  background-color: #c82333;  /* Darker red on hover */
+  border-color: #bd2130;
+}

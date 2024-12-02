@@ -112,7 +112,8 @@
                 quantity: latestRequest.quantity,
                 notes: latestRequest.notes,
                 acceptedAt: new Date().toISOString(),
-                completedAt: null
+                completedAt: null,
+                status: 'accepted'
               });
 
               console.log('Request accepted and saved successfully.');
