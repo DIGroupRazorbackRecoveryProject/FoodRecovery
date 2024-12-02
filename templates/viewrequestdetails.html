@@ -10,10 +10,11 @@
 </div>
 
 <div class="summary-item">
-  <img src="/FoodRecovery/icons/requesttype.png" alt="Request Type Icon">
+  <img src="/FoodRecovery/icons/calendar.png" alt="Calendar Icon">
   <div>
-      <h3>Request Type</h3>
-      <p id="request-type">Loading...</p>
+      <h3>Event Date & Time</h3>
+      <p id="event-date">Loading...</p>
+      <p id="event-time">Loading...</p>
   </div>
 </div>
 
@@ -26,14 +27,10 @@
 </div>
 
 <div class="summary-item">
-  <img src="path/to/your/map.png" alt="Map" style="width: 100%; height: auto;">
-</div>
-
-<div class="summary-item">
   <img src="/FoodRecovery/icons/food.png" alt="Food Type Icon">
   <div>
-      <h3>Food</h3>
-      <p id="food">Loading...</p>
+      <h3>Food Type</h3>
+      <p id="food-type">Loading...</p>
   </div>
 </div>
 
@@ -46,30 +43,73 @@
 </div>
 
 <div class="summary-item">
+  <img src="/FoodRecovery/icons/time.png" alt="Pickup Time Icon">
+  <div>
+      <h3>Pickup Type</h3>
+      <p id="pickup-type">Loading...</p>
+  </div>
+</div>
+
+<div class="summary-item">
   <img src="/FoodRecovery/icons/notes.png" alt="Notes Icon">
   <div>
       <h3>Notes</h3>
       <p id="notes">Loading...</p>
   </div>
 </div>
-<button class="btn btn-primary" id="accepted-requests-button">Return to Accepted Requests</button> 
-<script>
-  $(document).ready(function() {
-    if (localStorage.getItem('latestRequest')) {
-      const latestRequest = JSON.parse(localStorage.getItem('latestRequest'));
-      $('#event-name').text(latestRequest.eventName || 'N/A');
-      $('#request-type').text(latestRequest.requestType || 'N/A');
-      $('#location').text(latestRequest.location || 'N/A');
-      $('#food').text(latestRequest.food || 'N/A');
-      $('#quantity').text(latestRequest.quantity ? latestRequest.quantity + ' lbs' : 'N/A');
-      $('#notes').text(latestRequest.notes || 'N/A');
-    } else {
-      console.error('No valid request details found. Please select a request.');
-      alert('No valid request details found. Please select a request.');
+
+<button class="btn btn-primary" id="accepted-requests-button">Return to Accepted Requests</button>
+
+<script type="module">
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+
+    const app = getApp();
+    const db = getFirestore(app);
+
+    function formatTime(timeString) {
+        if (!timeString) return 'N/A';
+        try {
+            const [hours, minutes] = timeString.split(':');
+            let hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12;
+            hour = hour ? hour : 12;
+            return `${hour}:${minutes} ${ampm}`;
+        } catch (error) {
+            return timeString;
+        }
     }
-    $('#accepted-requests-button').click(function(event) {
-      event.preventDefault();
-      loadContent('acceptedrequest');
+
+    $(document).ready(async function() {
+        try {
+            const requestId = localStorage.getItem('selectedRequestId');
+            if (!requestId) throw new Error('No request ID found');
+
+            const requestDoc = await getDoc(doc(db, "acceptedRequests", requestId));
+            if (requestDoc.exists()) {
+                const requestData = requestDoc.data();
+                
+                $('#event-name').text(requestData.eventName || 'N/A');
+                $('#event-date').text(requestData.eventDate || 'N/A');
+                $('#event-time').text(formatTime(requestData.eventTime));
+                $('#location').text(requestData.location || 'N/A');
+                $('#food-type').text(requestData.foodType || 'N/A');
+                $('#quantity').text(requestData.quantity ? `${requestData.quantity} lbs` : 'N/A');
+                $('#pickup-type').text(requestData.pickupType || 'N/A');
+                $('#notes').text(requestData.notes || 'N/A');
+            } else {
+                throw new Error('Request not found');
+            }
+        } catch (error) {
+            console.error('Error loading request details:', error);
+            alert('Error loading request details. Returning to accepted requests...');
+            loadContent('acceptedrequest');
+        }
+
+        $('#accepted-requests-button').click(function(event) {
+            event.preventDefault();
+            loadContent('acceptedrequest');
+        });
     });
-  });
 </script>

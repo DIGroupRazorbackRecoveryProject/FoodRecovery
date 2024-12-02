@@ -10,10 +10,11 @@
 </div>
 
 <div class="summary-item">
-  <img src="/FoodRecovery/icons/requesttype.png" alt="Request Type Icon">
+  <img src="/FoodRecovery/icons/calendar.png" alt="Calendar Icon">
   <div>
-      <h3>Request Type</h3>
-      <p id="request-type">Loading...</p>
+      <h3>Event Date & Time</h3>
+      <p id="event-date">Loading...</p>
+      <p id="event-time">Loading...</p>
   </div>
 </div>
 
@@ -26,14 +27,10 @@
 </div>
 
 <div class="summary-item">
-  <img src="path/to/your/map.png" alt="Map" style="width: 100%; height: auto;">
-</div>
-
-<div class="summary-item">
   <img src="/FoodRecovery/icons/food.png" alt="Food Type Icon">
   <div>
-      <h3>Food</h3>
-      <p id="food">Loading...</p>
+      <h3>Food Type</h3>
+      <p id="food-type">Loading...</p>
   </div>
 </div>
 
@@ -42,6 +39,23 @@
   <div>
       <h3>Quantity</h3>
       <p id="quantity">Loading...</p>
+  </div>
+</div>
+
+<div class="summary-item">
+  <img src="/FoodRecovery/icons/time.png" alt="Pickup Time Icon">
+  <div>
+      <h3>Pickup Type</h3>
+      <p id="pickup-type">Loading...</p>
+  </div>
+</div>
+
+<div class="summary-item">
+  <img src="/FoodRecovery/icons/contact.png" alt="Contact Icon">
+  <div>
+      <h3>Contact Information</h3>
+      <p id="email">Loading...</p>
+      <p id="phone">Loading...</p>
   </div>
 </div>
 
@@ -65,74 +79,75 @@
     const auth = getAuth();
 
     $(document).ready(function() {
-      if (localStorage.getItem('latestRequest')) {
-        const latestRequest = JSON.parse(localStorage.getItem('latestRequest'));
-        $('#event-name').text(latestRequest.eventName || 'N/A');
-        $('#request-type').text(latestRequest.requestType || 'N/A');
-        $('#location').text(latestRequest.location || 'N/A');
-        $('#food').text(latestRequest.food || 'N/A');
-        $('#quantity').text(latestRequest.quantity ? latestRequest.quantity + ' lbs' : 'N/A');
-        $('#notes').text(latestRequest.notes || 'N/A');
-      } else {
-        console.error('No valid request details found. Please select a request.');
-        alert('No valid request details found. Please select a request.');
-      }
-
-      $('#accept-request-button').click(async function() {
-        if (localStorage.getItem('latestRequest')) {
-          const latestRequest = JSON.parse(localStorage.getItem('latestRequest'));
-          const requestNumber = generateRequestNumber();
-
-          console.log('Attempting to accept request:', latestRequest);
-          console.log('Generated request number:', requestNumber);
-
-          try {
-            // Update the request status in hostRequests collection
-            if (latestRequest.hostRequestid) {  // Changed from id to hostRequestid
-              const requestDocRef = doc(db, "hostRequests", latestRequest.hostRequestid);
-              await updateDoc(requestDocRef, {
-                status: "accepted"
-              });
-
-              // Get the current user
-              const currentUser = auth.currentUser;
-              if (!currentUser) {
-                throw new Error('No user is currently logged in');
-              }
-
-              // Add to acceptedRequests collection with volunteerId
-              await addDoc(collection(db, "acceptedRequests"), {
-                requestNumber,
-                hostRequestid: latestRequest.hostRequestid,  // Store the reference to hostRequests
-                volunteerId: currentUser.uid,
-                eventName: latestRequest.eventName,
-                requestType: latestRequest.requestType,
-                location: latestRequest.location,
-                food: latestRequest.food,
-                quantity: latestRequest.quantity,
-                notes: latestRequest.notes,
-                acceptedAt: new Date().toISOString(),
-                completedAt: null,
-                status: 'accepted'
-              });
-
-              console.log('Request accepted and saved successfully.');
-              alert(`Request accepted! Request Number: ${requestNumber}`);
-              loadContent('acceptedrequest');
+        try {
+            const latestRequest = JSON.parse(localStorage.getItem('latestRequest'));
+            if (latestRequest) {
+                // Update UI with the data
+                $('#event-name').text(latestRequest.eventName || 'N/A');
+                $('#event-date').text(latestRequest.eventDate || 'N/A');
+                $('#event-time').text(latestRequest.eventTime || 'N/A');
+                $('#location').text(latestRequest.location || 'N/A');
+                $('#food-type').text(latestRequest.foodType || 'N/A');
+                $('#quantity').text(latestRequest.quantity ? `${latestRequest.quantity} lbs` : 'N/A');
+                $('#pickup-type').text(latestRequest.pickupType || 'N/A');
+                $('#email').text(latestRequest.email || 'N/A');
+                $('#phone').text(latestRequest.phone || 'N/A');
+                $('#notes').text(latestRequest.notes || 'N/A');
             } else {
-              console.error('No document ID found for the request.');
+                throw new Error('No request data found');
             }
-          } catch (error) {
-            console.error('Error saving accepted request:', error);
-            alert('Error saving request.');
-          }
-        } else {
-          alert('No valid request details found. Please select a request.');
+        } catch (error) {
+            console.error('Error loading request details:', error);
+            alert('Error loading request details. Returning to dashboard...');
+            loadContent('volunteerdashboard');
         }
-      });
+
+        $('#accept-request-button').click(async function() {
+            try {
+                const requestData = JSON.parse(localStorage.getItem('latestRequest'));
+                if (!requestData) throw new Error('No request data found');
+
+                const requestNumber = generateRequestNumber();
+                const currentUser = auth.currentUser;
+                if (!currentUser) throw new Error('No user is currently logged in');
+
+                // Update original request status
+                await updateDoc(doc(db, "hostRequests", requestData.hostRequestid), {
+                    status: "accepted"
+                });
+
+                // Create accepted request record
+                await addDoc(collection(db, "acceptedRequests"), {
+                    requestNumber,
+                    hostRequestid: requestData.hostRequestid,
+                    volunteerId: currentUser.uid,
+                    eventName: requestData.eventName,
+                    eventDate: requestData.eventDate,
+                    eventTime: requestData.eventTime,
+                    location: requestData.location,
+                    foodType: requestData.foodType,
+                    quantity: requestData.quantity,
+                    pickupType: requestData.pickupType,
+                    email: requestData.email,
+                    phone: requestData.phone,
+                    notes: requestData.notes,
+                    acceptedAt: new Date().toISOString(),
+                    completedAt: null,
+                    status: 'accepted'
+                });
+
+                console.log('Request accepted successfully');
+                alert(`Request accepted! Request Number: ${requestNumber}`);
+                loadContent('acceptedrequest');
+
+            } catch (error) {
+                console.error('Error accepting request:', error);
+                alert('Error accepting request: ' + error.message);
+            }
+        });
     });
 
     function generateRequestNumber() {
-      return Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit number
+        return Math.floor(100000 + Math.random() * 900000);
     }
 </script>
