@@ -6,7 +6,29 @@
 <div id="accepted-requests-container"></div>
 
 <!-- Start Pickup Button -->
-<button class="btn btn-primary" id="start-pickup-button">Start Pickup</button> 
+<div class="button-group">
+  <button class="btn btn-primary" id="start-pickup-button">Start Pickup</button>
+  <button class="btn btn-danger" id="cancel-requests-button">Cancel Request</button>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelConfirmModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Cancellation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to cancel the selected requests?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+        <button type="button" class="btn btn-danger" id="confirm-cancel-btn">Yes, Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Completed Requests Section -->
 <div class="completed-requests-section">
@@ -15,7 +37,7 @@
 </div>
 
 <script type="module">
-  import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
   import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
@@ -56,38 +78,37 @@
           return;
         }
 
-        // Get all documents from hostRequests
         const hostRequestsSnapshot = await getDocs(collection(db, "hostRequests"));
         const acceptedContainer = $('#accepted-requests-container');
         const completedContainer = $('#completed-requests-container');
         acceptedContainer.empty();
         completedContainer.empty();
 
-        console.log('Checking host requests...');
-
-        // Get all accepted requests for the current volunteer
         const acceptedSnapshot = await getDocs(collection(db, "acceptedRequests"));
         const acceptedRequestsMap = new Map();
             
         acceptedSnapshot.docs.forEach(acceptedDoc => {
           const acceptedData = acceptedDoc.data();
-          if (acceptedData.volunteerId === currentUser.uid) {
-            acceptedRequestsMap.set(acceptedData.hostRequestid, acceptedData);
+          if (acceptedData.volunteerId === currentUser.uid && acceptedData.status !== 'canceled') {
+            acceptedRequestsMap.set(acceptedData.hostRequestid, {
+              ...acceptedData,
+              docId: acceptedDoc.id
+            });
           }
         });
 
-        // Process host requests
         for (const hostDoc of hostRequestsSnapshot.docs) {
           const hostData = hostDoc.data();
           const acceptedData = acceptedRequestsMap.get(hostDoc.id);
 
-          if (acceptedData) {
+          if (acceptedData && hostData.status !== 'canceled') {
             const requestElement = $(`<div class="summary-item ${hostData.status === 'completed' ? 'completed-request-item' : ''}">
                                     <div style="display: flex; align-items: center;">
                                       ${hostData.status !== 'completed' ? 
                                         `<input type="checkbox" class="request-checkbox" 
-                                                data-request-number="${acceptedData.requestNumber}" 
-                                                data-doc-id="${hostDoc.id}" 
+                                                data-request-number="${acceptedData.requestNumber}"
+                                                data-accepted-id="${acceptedData.docId}"
+                                                data-host-id="${hostDoc.id}"
                                                 style="margin-right: 10px;">` : ''}
                                       <div>
                                         <p>Request Details Number: <a href="#" class="request-details-link">${acceptedData.requestNumber}</a></p>
@@ -96,7 +117,6 @@
                                     </div>
                                   </div>`);
 
-            // Add to appropriate container based on status
             if (hostData.status === 'completed') {
               completedContainer.append(requestElement);
             } else if (hostData.status === 'accepted') {
@@ -104,7 +124,7 @@
             }
           }
         }
-        // Add event listeners for checkboxes
+
         $('.request-checkbox').change(function() {
           const requestNumber = $(this).data('request-number');
           if (this.checked) {
@@ -114,7 +134,6 @@
           }
         });
 
-        // Add event listeners for links
         $('.request-details-link').click(function(event) {
           event.preventDefault();
           const requestNumber = $(this).text();
@@ -132,6 +151,45 @@
         loadContent('confirmfoodpickup');
       } else {
         alert('Please select at least one request to start the pickup.');
+      }
+    });
+
+    $('#cancel-requests-button').click(function() {
+      if (selectedRequests.size > 0) {
+        $('#cancelConfirmModal').modal('show');
+      } else {
+        alert('Please select at least one request to cancel.');
+      }
+    });
+
+    $('#confirm-cancel-btn').click(async function() {
+      try {
+        const checkboxes = $('.request-checkbox:checked');
+        
+        for (const checkbox of checkboxes) {
+          const acceptedId = $(checkbox).data('accepted-id');
+          const hostId = $(checkbox).data('host-id');
+
+          // Update acceptedRequests document
+          const acceptedRef = doc(db, 'acceptedRequests', acceptedId);
+          await updateDoc(acceptedRef, {
+            status: 'canceled'
+          });
+
+          // Update hostRequests document
+          const hostRef = doc(db, 'hostRequests', hostId);
+          await updateDoc(hostRef, {
+            status: 'pending'
+          });
+        }
+
+        $('#cancelConfirmModal').modal('hide');
+        selectedRequests.clear();
+        await loadAcceptedRequests();
+        alert('Selected requests have been canceled successfully.');
+      } catch (error) {
+        console.error('Error canceling requests:', error);
+        alert('An error occurred while canceling the requests.');
       }
     });
   });

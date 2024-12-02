@@ -130,11 +130,12 @@
                 status: "completed"
               });
 
-              // Update the accepted request with completion time and additional info
+              // Update the accepted request with completion time, additional info, and status
               const acceptedRequestRef = doc(db, "acceptedRequests", acceptedDoc.id);
               await updateDoc(acceptedRequestRef, {
                 completedAt: completedAt,
-                additionalInfo: additionalInfo // Save the additional info
+                additionalInfo: additionalInfo, // Save the additional info
+                status: "complete" // Update the status to complete
               });
 
               console.log(`Host request ${hostRequestid} marked as completed in Firestore`);
@@ -157,4 +158,3 @@
     }
   });
 </script>
-
