@@ -87,6 +87,9 @@ function loadContent(section) {
         case 'pickupcompleted':
             page = '/FoodRecovery/templates/pickupcompleted.html';
             break;
+        case 'login':
+            page = '/FoodRecovery/templates/volunteerlogin.html';
+            break;    
         case 'support':
             page = '/FoodRecovery/templates/support.html';
             break;
