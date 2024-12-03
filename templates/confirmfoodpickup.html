@@ -21,7 +21,7 @@
 <p class="notification">Email will be sent to the requester that food has been picked up and the request will be closed in the dashboard.</p>
 
 <script type="module">
-  import { getFirestore, doc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
   import { getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
   const app = getApp();
@@ -102,7 +102,7 @@
   // Event listener for "Complete Pickup" button
   document.getElementById("complete-pickup-button").addEventListener("click", async function() {
     let selectedRequests = localStorage.getItem('selectedRequests');
-    const additionalInfo = document.getElementById('additional-info').value.trim(); // Capture the additional information
+    const additionalInfo = document.getElementById('additional-info').value.trim();
 
     if (selectedRequests) {
       selectedRequests = JSON.parse(selectedRequests);
@@ -124,20 +124,53 @@
             const completedAt = new Date().toISOString();
             
             if (hostRequestid) {
-              // Update the host request status
+              // Get the original host request data
               const hostRequestRef = doc(db, "hostRequests", hostRequestid);
+              const hostRequestDoc = await getDoc(hostRequestRef);
+              const hostRequestData = hostRequestDoc.data();
+
+              // Update the host request status
               await updateDoc(hostRequestRef, {
                 status: "completed"
               });
 
-              // Update the accepted request with completion time, additional info, and status
+              // Update the accepted request
               const acceptedRequestRef = doc(db, "acceptedRequests", acceptedDoc.id);
               await updateDoc(acceptedRequestRef, {
                 completedAt: completedAt,
-                additionalInfo: additionalInfo, // Save the additional info
-                status: "complete" // Update the status to complete
+                additionalInfo: additionalInfo,
+                status: "complete"
               });
 
+              // Create a new record in CompletedHostRequests
+              await addDoc(collection(db, "CompletedHostRequests"), {
+                // Original host request data
+                eventName: hostRequestData.eventName,
+                eventDate: hostRequestData.eventDate,
+                eventTime: hostRequestData.eventTime,
+                location: hostRequestData.location,
+                foodType: hostRequestData.foodType,
+                quantity: hostRequestData.quantity,
+                pickupType: hostRequestData.pickupType,
+                email: hostRequestData.email,
+                phone: hostRequestData.phone,
+                notes: hostRequestData.notes,
+                originalRequestId: hostRequestid,
+                originalUserId: hostRequestData.userId,
+                
+                // Completion details
+                completedAt: completedAt,
+                completedBy: acceptedData.volunteerId,
+                requestNumber: acceptedData.requestNumber,
+                additionalInfo: additionalInfo,
+                
+                // Metadata
+                createdAt: hostRequestData.createdAt,
+                acceptedAt: acceptedData.acceptedAt,
+                status: "completed"
+              });
+
+              console.log(`Request ${requestNumber} completed and archived`);
               console.log(`Host request ${hostRequestid} marked as completed in Firestore`);
               console.log(`Completion time recorded: ${completedAt}`);
               console.log(`Additional info saved: ${additionalInfo}`);
