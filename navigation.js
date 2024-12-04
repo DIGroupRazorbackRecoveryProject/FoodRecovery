@@ -169,7 +169,7 @@ $(document).ready(function() {
         event.preventDefault();
         localStorage.setItem('loggedIn', false);
         sessionStorage.removeItem('loggedInUser');
-        loadContent('login');
+        loadContent('volunteerlogin');
     });
 
     $('#myprofile-link').click(function(event) {
@@ -187,17 +187,6 @@ $(document).ready(function() {
             $('.navbar-toggler').trigger('click');
         }
     });
-
-    if (!localStorage.getItem('firstVisit')) {
-        localStorage.setItem('firstVisit', true);
-        loadContent('login');
-    } else {
-        if (localStorage.getItem('loggedIn') === 'true') {
-            loadContent('home');
-        } else {
-            loadContent('login');
-        }
-    }
 });
 
 // ... other functions ...
